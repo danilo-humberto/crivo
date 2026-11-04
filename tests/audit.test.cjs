@@ -1,0 +1,27 @@
+const {test} = require('node:test');
+const assert = require('node:assert/strict');
+const {initialize,commit,KEY} = require('../src/infrastructure/local-storage.js');
+const {validateState} = require('../src/domain/audit.js');
+const p = {id:'p1',title:'Portal',description:'Chamados',solution:'Portal interno',owner:'Ana',category:'Operações',status:'Planejado',requested:'2026-01-01',completed:'',cost:100,url:'',alternatives:[{name:'Outro',cost:200,notes:'Suporte'}]};
+const storage = () => {const map=new Map();return {getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v)};};
+test('exemplos de edição e exclusão são identificados, completos e não alteram projetos',()=>{
+  const s=storage(),a=initialize(s,[p]);
+  const result=require('../src/infrastructure/local-storage.js').addExamples(s,a);
+  assert.deepEqual(result.state.projects,[p]);
+  const examples=result.state.audit.filter(e=>e.demo);
+  assert.equal(examples.length,2);
+  const updated=examples.find(e=>e.action==='updated');
+  assert.equal(updated.before.cost,180);assert.equal(updated.after.cost,90);
+  const deleted=examples.find(e=>e.action==='deleted');
+  assert.ok(deleted.before.solution);assert.equal(deleted.after,null);
+  assert.doesNotThrow(()=>validateState(result.state));
+  assert.equal(require('../src/infrastructure/local-storage.js').addExamples(s,result).raw,result.raw);
+});
+test('migra registros existentes sem inventar histórico e mantém v1',()=>{const s=storage();s.setItem('vault-ti.projects.v1',JSON.stringify([p]));const result=initialize(s,[]);assert.equal(result.state.projects.length,1);assert.equal(result.state.audit[0].action,'baseline');assert.deepEqual(result.state.audit[0].after,p);assert.ok(s.getItem('vault-ti.projects.v1'));assert.equal(initialize(s,[]).state.audit.length,1);});
+test('registra antes/depois e alternativas sem alterar versão anterior',()=>{const s=storage(), a=initialize(s,[p]);const next=structuredClone(p);next.cost=120;next.alternatives[0].notes='Novo';const b=commit(s,a.raw,[next]);assert.deepEqual(b.state.audit[0].before,p);assert.equal(b.state.audit[0].after.cost,120);assert.equal(b.state.audit[1].after.alternatives[0].notes,'Suporte');});
+test('criação e exclusão preservam cópias completas',()=>{const s=storage(),a=initialize(s,[]),b=commit(s,a.raw,[p]),c=commit(s,b.raw,[]);assert.equal(b.state.audit[0].action,'created');assert.equal(c.state.audit[0].action,'deleted');assert.deepEqual(c.state.audit[0].before,p);assert.equal(c.state.audit[0].after,null);});
+test('salvar sem alterações não duplica histórico, mesmo com ordem das propriedades diferente',()=>{const s=storage(),a=initialize(s,[p]),next={...p,alternatives:p.alternatives.map(a=>({notes:a.notes,cost:a.cost,name:a.name}))};const b=commit(s,a.raw,[next]);assert.equal(b.state.audit.length,1);assert.equal(b.raw,a.raw);});
+test('falha de gravação preserva projeto e histórico anteriores',()=>{const s=storage(),a=initialize(s,[p]);s.setItem=()=>{throw Error('quota');};assert.throws(()=>commit(s,a.raw,[{...p,cost:120}]),/quota/);assert.equal(s.getItem(KEY),a.raw);});
+test('recusa gravar sobre alterações de outra aba',()=>{const s=storage(),a=initialize(s,[p]);const b=commit(s,a.raw,[{...p,cost:120}]);assert.throws(()=>commit(s,a.raw,[{...p,cost:130}]),/outra aba/);assert.equal(s.getItem(KEY),b.raw);});
+test('não substitui histórico inválido nem retorna ao v1 silenciosamente',()=>{const s=storage();s.setItem(KEY,'{invalido');assert.throws(()=>initialize(s,[p]));assert.equal(s.getItem(KEY),'{invalido');});
+test('rejeita estado ou snapshot inválido',()=>{assert.throws(()=>validateState({version:2,projects:[p],audit:[{}]}));});

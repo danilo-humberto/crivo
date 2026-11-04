@@ -1,0 +1,25 @@
+/* Motion answers actions; the collection itself stays still while filtering. */
+@media(prefers-reduced-motion:no-preference){
+  button,a,input,select,textarea,.card{transition:background-color 160ms ease,border-color 160ms ease,color 160ms ease,box-shadow 160ms ease}
+  .primary:active,.secondary:active,.detail-button:active{transform:translateY(1px)}
+  @keyframes notice{from{opacity:0;translate:0 6px}to{opacity:1;translate:0 0}}
+  #toast:not([hidden]){animation:notice 180ms ease-out}
+  /* Closing stays in the top layer until the transition completes. */
+  dialog{opacity:0;transform:translateY(10px);transition:opacity 180ms ease,transform 180ms ease,display 180ms,overlay 180ms;transition-behavior:allow-discrete}
+  dialog[open]:not([data-closing]){opacity:1;transform:translateY(0)}
+  dialog::backdrop{background:#24305200;transition:background-color 180ms ease,display 180ms,overlay 180ms;transition-behavior:allow-discrete}
+  dialog[open]:not([data-closing])::backdrop{background:#24305280}
+  @starting-style{
+    dialog[open]:not([data-closing]){opacity:0;transform:translateY(10px)}
+    dialog[open]:not([data-closing])::backdrop{background:#24305200}
+  }
+}
+@media(hover:hover) and (pointer:fine){
+  .primary:hover{background:#273a9e;border-color:#273a9e}
+  .secondary:hover,.icon-button:hover{background:#edf0f8;border-color:#a9b6d2}
+  .nav:hover{background:#edf0fa;color:#293b9a}
+  .detail-button:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .card:hover{border-color:#9eacd5;box-shadow:0 3px 0 #aebadd}
+  .search:hover,.toolbar select:hover{border-color:#8798c4}
+}
+.card:focus-within{border-color:var(--blue)}

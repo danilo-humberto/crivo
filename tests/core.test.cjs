@@ -1,0 +1,10 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const { validateProject, filterProjects, savings, safeUrl } = require('../src/domain/core.js');
+const project = {id:'1', title:'Portal', description:'Sistema interno', solution:'Centralização', owner:'Ana', category:'Operações', status:'Concluído', requested:'2026-01-01', completed:'2026-02-01', cost:100, alternatives:[{name:'Produto A',cost:300,notes:'Suporte incluso'}]};
+test('rejeita conclusão anterior à solicitação',()=>assert.throws(()=>validateProject({...project,completed:'2025-01-01'})));
+test('concluído exige data de conclusão',()=>assert.throws(()=>validateProject({...project,completed:''})));
+test('valida registro e rejeita custo negativo',()=>{assert.doesNotThrow(()=>validateProject(project));assert.throws(()=>validateProject({...project,cost:-1}));});
+test('busca sem acento e combina filtros',()=>{assert.equal(filterProjects([project],'operacoes','Concluído','Operações').length,1);assert.equal(filterProjects([project],'','Em andamento','').length,0);});
+test('economia usa alternativa mais barata e não fica negativa',()=>{assert.equal(savings(project),200);assert.equal(savings({...project,cost:400}),0);});
+test('links permitem somente http e https',()=>{assert.equal(safeUrl('javascript:alert(1)'), '');assert.equal(safeUrl('https://example.com'), 'https://example.com/');});
