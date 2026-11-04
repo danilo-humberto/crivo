@@ -6,7 +6,7 @@ const {webcrypto} = require('node:crypto');
 const {createServer} = require('../server/server.cjs');
 
 test('serve página e recursos, integra os módulos do navegador e não expõe documentos internos', async t => {
-  const server = createServer();
+  const server = createServer({mode:'local'});
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   t.after(() => new Promise(resolve => server.close(resolve)));

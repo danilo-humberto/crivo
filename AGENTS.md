@@ -16,6 +16,7 @@ Para infraestrutura e autenticação, consulte a [proposta técnica da etapa 2](
 - Não invente requisitos nem trate decisões técnicas pendentes do plano como aprovadas.
 - Se houver conflito entre plano, documentação e código, apresente as evidências e solicite decisão antes de alterar o comportamento envolvido.
 - Registre novas decisões aprovadas no plano, evitando documentação contraditória ou duplicada.
+- Escreva os planos de implementação de cada etapa de forma enxuta e direta, com escopo, abordagem recomendada, critérios de aceite e validação, riscos e decisões ou autorizações pendentes. Para escolhas relevantes, apresente as alternativas e seus trade-offs (benefícios, custos e limitações), justificando a recomendação. Evite repetir contexto, regras e requisitos já documentados; use links para as referências e detalhe apenas o necessário para decidir e executar a etapa.
 
 ## Segurança e aprovações
 

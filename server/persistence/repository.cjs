@@ -37,6 +37,29 @@ async function writeAudit(client,{id=randomUUID(),projectId,action,at=new Date()
 
 function createRepository(pool) {
   return {
+    async listState(){return transaction(pool,async client=>{
+      await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
+      const ids=(await client.query('SELECT id FROM vault.projects WHERE archived_at IS NULL ORDER BY requested DESC,id')).rows;
+      const projects=[];for(const {id} of ids)projects.push(await readProject(client,id));
+      const audit=(await client.query(`SELECT id,project_id AS "projectId",action,happened_at AS at,
+        actor_legacy AS actor,before_snapshot AS before,after_snapshot AS after,
+        coalesce(legacy_event->'demo'='true'::jsonb,false) AS demo FROM vault.audit ORDER BY happened_at DESC,id`)).rows;
+      return {version:2,projects,audit};
+    });},
+    async deleteProject(id,{expectedVersion,actorId}){
+      if(!Number.isInteger(expectedVersion)||expectedVersion<1)throw Object.assign(Error('Versão inválida.'),{status:400});
+      return transaction(pool,async client=>{
+        const actor=(await client.query('SELECT name FROM vault.internal_users WHERE id=$1 AND active=true FOR SHARE',[actorId])).rows[0];
+        if(!actor)throw Object.assign(Error('Acesso interno não autorizado.'),{status:403});
+        const before=await readProject(client,id,true);
+        if(!before||before.version!==expectedVersion)throw Object.assign(Error('Conflito de versão. Recarregue os dados.'),{status:409});
+        if((await client.query('SELECT id FROM vault.reviews WHERE project_id=$1 LIMIT 1',[id])).rows.length)throw Object.assign(Error('Projeto com avaliações não pode ser excluído. Arquivamento será disponibilizado na etapa 5.'),{status:409});
+        await client.query('DELETE FROM vault.alternatives WHERE project_id=$1',[id]);
+        await client.query('DELETE FROM vault.projects WHERE id=$1',[id]);
+        await writeAudit(client,{projectId:id,action:'deleted',actorId,actor:actor.name,before});
+        return {id};
+      });
+    },
     // Server/admin only: callers must authenticate and authorize before use.
     async getProject(id) {
       return transaction(pool,async client=>{
@@ -45,14 +68,14 @@ function createRepository(pool) {
       });
     },
     async saveProject(project,{expectedVersion=null,actorId}={}) {
-      validateProject(project);
+      try{validateProject(project);}catch{throw Object.assign(Error('Projeto inválido.'),{status:400});}
       if(typeof actorId!=='string'||!actorId)throw Error('Autor obrigatório.');
       if(expectedVersion!==null&&(!Number.isInteger(expectedVersion)||expectedVersion<1))throw Error('Versão inválida.');
       return transaction(pool,async client=>{
         const actor=(await client.query('SELECT name FROM vault.internal_users WHERE id=$1 AND active=true FOR SHARE',[actorId])).rows[0];
         if(!actor)throw Error('Autor interno inativo ou inexistente.');
         const before=await readProject(client,project.id,true);
-        if((!before&&expectedVersion!==null)||(before&&before.version!==expectedVersion))throw Error('Conflito de versão.');
+        if((!before&&expectedVersion!==null)||(before&&before.version!==expectedVersion))throw Object.assign(Error('Conflito de versão.'),{status:409});
         if(before?.archived_at)throw Error('Projeto arquivado.');
         if(before&&!changedFields(before,project).length)return before;
         if(!before)await insertProject(client,project);

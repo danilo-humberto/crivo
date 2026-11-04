@@ -1,0 +1,14 @@
+.user-profile{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;overflow-wrap:anywhere}
+.user-profile[hidden],.profile-photo [hidden]{display:none}
+.user-profile strong{font:500 1.25rem/1.3 Outfit,sans-serif;max-width:24ch}
+.profile-photo{position:relative;display:grid;place-items:center;width:88px;height:88px;flex-shrink:0;border-radius:50%;overflow:hidden;background:#e3e6fa;color:#3549b8;font:500 1.65rem Outfit,sans-serif;border:4px solid white;box-shadow:0 0 0 1px #cbd1e5}
+.profile-photo img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.app-header.with-profile{justify-content:space-between;flex-wrap:wrap;gap:16px 24px;padding:18px 28px}
+.header-account{display:flex;align-items:center;justify-content:flex-end;gap:24px;margin-inline-start:auto;min-inline-size:0}
+.with-profile .user-profile{flex-direction:row;text-align:left;min-inline-size:0;gap:12px}
+.with-profile .user-profile strong{font-size:1rem;max-width:24ch}
+.with-profile .profile-photo{width:48px;height:48px;border-width:2px;font-size:1rem}
+.account-navigation{display:flex;flex-shrink:0}
+.account-navigation a{color:var(--blue);font-weight:600;min-height:48px;display:inline-flex;align-items:center;padding:0 8px}
+.with-profile ~ main{padding-top:28px}
+@media(max-width:650px){.app-header.with-profile{padding:16px 18px}.header-account{gap:12px;flex-wrap:wrap}.with-profile .user-profile{flex:1;justify-content:flex-end}.with-profile .user-profile strong{max-width:16ch}.account-navigation a{font-size:.875rem;padding:0}.with-profile ~ main{padding-top:20px}}

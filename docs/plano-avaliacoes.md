@@ -1,5 +1,11 @@
 # Plano do catálogo público e das avaliações do Vault
 
+## Acompanhamento da etapa 4
+
+Em 4 de novembro de 2026, o usuário autorizou a implementação da etapa 4, as dependências fixas @neon/auth 0.8.2 e esbuild 0.28.2 e, posteriormente, a integração controlada com o Neon. A migration 002 foi aplicada; o primeiro usuário foi provisionado, verificou o e-mail e acessou a gestão. Convites usam link sem vínculo de e-mail, uso único, validade de 48 horas e revogação pelo emissor.
+
+Validação atual: 48 testes locais e build aprovados; revisão independente realizada. Perfil, formulários, cabeçalho e transições foram ajustados e inspecionados no navegador. Logout, novo login e recuperação de senha reais continuam pendentes; a etapa não está integralmente validada. Escopo no [plano da etapa 4](implementacao-etapa-4.md) e evidências no [README](../README.md).
+
 Plano aprovado em 3 de novembro de 2026. A implementação será incremental, começando pela organização das pastas. Este documento registra o escopo aprovado; não indica que as funcionalidades já foram implementadas.
 
 ## Contexto atual
@@ -131,3 +137,5 @@ Em 4 de novembro de 2026, o usuário autorizou inicializar Git sem commit, imple
 Validação local: 31 testes aprovados e sintaxe JS/CJS conferida. Testes do repositório usam conexões simuladas. O teste real de integração foi preparado, mas ainda depende de ambiente de desenvolvimento e autorização para aplicar a migration. A interface continua usando localStorage até a integração protegida pela autenticação. A etapa 3 não está concluída; não houve commit, deploy ou revisão independente. Detalhes no README.
 
 Atualização posterior em 4 de novembro: o usuário autorizou expressamente usar `production` e aplicar a migration pelo agente, mantendo CPF obrigatório nos usuários internos. A migration 001 foi validada em PostgreSQL 18 local isolado, com dados sintéticos; backup anterior à aplicação foi restaurado com sucesso em ambiente local sem rede. A aplicação transacional em `neondb` foi concluída e verificada: oito tabelas no schema `vault`, versão 1 e nove tabelas existentes de autenticação preservadas. Não houve testes funcionais nem importação em produção. A validação completa do repositório em Neon de desenvolvimento continua pendente. Evidências e recuperação estão no README.
+
+Atualização operacional da etapa 4 em 4 de novembro: o usuário autorizou testes controlados no banco de produção, aplicação da migration 002 e configuração do Auth. Backup restaurado e migration validada localmente antes da aplicação; versão 2 confirmada e nove tabelas Auth preservadas. Dez verificações passaram e os registros sintéticos foram removidos. Integração local configurada; cadastro, verificação e primeiro usuário concluídos. Recuperação de senha, logout e novo login reais continuam pendentes. Evidências no README.

@@ -44,3 +44,12 @@ dialog{width:min(780px,calc(100% - 32px));max-height:90vh;max-height:90dvh;overf
 .audit-description h2{font-size:20px;overflow-wrap:anywhere}.audit-description p{margin:6px 0;color:var(--muted);font-size:14px;overflow-wrap:anywhere}.audit-description small{color:var(--muted);font-size:12px}
 .audit-comparison table{table-layout:fixed}.audit-comparison th{white-space:normal;width:26%}.audit-comparison td{white-space:pre-wrap;overflow-wrap:anywhere}.audit-comparison caption{text-align:left;padding:14px;font-size:14px;color:var(--muted)}.audit-comparison th small{display:block;color:var(--blue);font-size:11px;margin-top:5px}.audit-comparison .changed-field{background:#eef1ff}.audit-comparison .changed-field th{background:#e7ebfc}#audit-more{margin-top:20px}
 @media(max-width:700px){.audit-entry{grid-template-columns:1fr;gap:14px;padding:18px}.audit-event{flex-direction:row;justify-content:space-between;align-items:center}.audit-entry>.detail-button{justify-self:start}.audit-comparison th,.audit-comparison td{padding:10px 8px;font-size:12px}.audit-note{font-size:13px}.view-tabs [role=tab]{min-height:52px}}
+/* A single underline travels between the primary views. */
+.view-tabs{position:relative}
+.view-tabs [aria-selected=true]>span::after{content:none}
+.view-tabs::after{content:'';position:absolute;pointer-events:none;bottom:0;height:3px;border-radius:2px;background:var(--blue);left:var(--view-left,25%);width:var(--view-width,0px)}
+@supports(position-anchor:--view-selected){
+  .view-tabs [aria-selected=true]>span{anchor-name:--view-selected}
+  .view-tabs::after{position-anchor:--view-selected;left:anchor(left);width:anchor-size(width)}
+}
+@media(prefers-reduced-motion:no-preference){.view-tabs::after{transition:left .3s cubic-bezier(.22,1,.36,1),width .3s cubic-bezier(.22,1,.36,1)}}

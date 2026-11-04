@@ -23,3 +23,15 @@
   .search:hover,.toolbar select:hover{border-color:#8798c4}
 }
 .card:focus-within{border-color:var(--blue)}
+/* Primary panels enter together with the selected-tab underline. */
+@media(prefers-reduced-motion:no-preference){
+  #panel-projects{--panel-entry-x:28px}
+  #panel-audit{--panel-entry-x:-28px}
+  :is(#panel-projects,#panel-audit):not([hidden]){
+    opacity:1;transform:translateX(0);
+    transition:transform .3s cubic-bezier(.22,1,.36,1),opacity .3s cubic-bezier(.22,1,.36,1);
+  }
+  @starting-style{
+    :is(#panel-projects,#panel-audit):not([hidden]){opacity:0;transform:translateX(var(--panel-entry-x))}
+  }
+}
