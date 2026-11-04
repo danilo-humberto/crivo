@@ -2,6 +2,25 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {once}=require('node:events');
 const {createServer}=require('../server/server.cjs');
+
+test('lista de responsáveis e remoção exigem usuário interno e usam autor da sessão',async t=>{
+  let session=null,user=null,removed;
+  const server=createServer({origin:'http://localhost',auth:{session:async()=>session},authRepository:{lookup:async()=>user,listUsers:async()=>[{id:'owner',name:'Pessoa sintética'}]},repository:{deleteProject:async(id,options)=>{removed={id,...options};return {id,action:'archived'};}}});
+  server.listen(0,'127.0.0.1');await once(server,'listening');t.after(()=>new Promise(r=>server.close(r)));
+  const base=`http://127.0.0.1:${server.address().port}`;
+  assert.equal((await fetch(base+'/api/users')).status,401);
+  session={user:{id:'external',emailVerified:true},session:{expiresAt:'2099-01-01'}};
+  assert.equal((await fetch(base+'/api/users')).status,403);
+  user={id:'internal',name:'Autor',active:true};
+  assert.deepEqual(await (await fetch(base+'/api/users')).json(),[{id:'owner',name:'Pessoa sintética'}]);
+  const csrf=await fetch(base+'/api/csrf');const token=(await csrf.json()).token;
+  const headers={origin:'http://localhost','content-type':'application/json','x-vault-csrf':token,cookie:csrf.headers.get('set-cookie').split(';')[0]};
+  const result=await fetch(base+'/api/projects/synthetic',{method:'DELETE',headers,body:JSON.stringify({expectedVersion:4,actorId:'forged'})});
+  assert.equal(result.status,200);assert.equal((await result.json()).action,'archived');
+  assert.deepEqual(removed,{id:'synthetic',expectedVersion:4,actorId:'internal'});
+  user.active=false;
+  assert.equal((await fetch(base+'/api/projects/synthetic',{method:'DELETE',headers,body:'{}'})).status,403);
+});
 test('API verifica sessão, autorização, origem e autor antes de persistir',async t=>{
   let session=null,user=null,saved;
   const server=createServer({mode:'managed',origin:'http://localhost',auth:{session:async()=>session},authRepository:{lookup:async()=>user},repository:{saveProject:async(p,opts)=>{saved=opts;return p;},listState:async()=>({projects:[],audit:[]})}});

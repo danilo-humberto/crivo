@@ -1,6 +1,6 @@
 (function(root){
   const core = typeof module !== 'undefined' ? require('./core.js') : root.VaultCore;
-  const fields=['title','description','solution','owner','category','status','requested','completed','cost','url','alternatives'];
+  const fields=['title','description','solution','owner','category','status','requested','completed','cost','url','alternatives','owner_id','is_public','show_solution_url','archived_at'];
   function validateProjects(projects){
     if(!Array.isArray(projects))throw Error('Lista de projetos inválida.');
     projects.forEach(core.validateProject);
@@ -15,12 +15,13 @@
     validateProjects(state.projects);
     const ids=new Set();
     for(const e of state.audit){
-      if(!e || typeof e.id!=='string' || ids.has(e.id) || typeof e.projectId!=='string' || typeof e.actor!=='string' || typeof e.at!=='string' || !Number.isFinite(Date.parse(e.at)) || !['baseline','created','updated','deleted'].includes(e.action))throw Error('Registro de auditoria inválido.');
+      if(!e || typeof e.id!=='string' || ids.has(e.id) || typeof e.projectId!=='string' || typeof e.actor!=='string' || typeof e.at!=='string' || !Number.isFinite(Date.parse(e.at)) || !['baseline','created','updated','deleted','archived'].includes(e.action))throw Error('Registro de auditoria inválido.');
       ids.add(e.id);
       if(e.before!==null)core.validateProject(e.before);
       if(e.after!==null)core.validateProject(e.after);
       if((e.before && e.before.id!==e.projectId)||(e.after && e.after.id!==e.projectId))throw Error('Projeto do histórico inválido.');
       if(['baseline','created'].includes(e.action) && (e.before!==null || !e.after) || e.action==='updated' && (!e.before||!e.after) || e.action==='deleted' && (!e.before||e.after!==null))throw Error('Versão de auditoria inválida.');
+      if(e.action==='archived'&&(!e.before||!e.after||e.before.archived_at||!e.after.archived_at))throw Error('Versão de arquivamento inválida.');
     }
     return state;
   }

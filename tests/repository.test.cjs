@@ -31,7 +31,7 @@ test('importação preserva evento legado e não confia em actorId fornecido no 
   assert.deepEqual(JSON.parse(entry.params[8]),event);
 });
 test('falha de auditoria solicita rollback após gravar projeto e alternativas',async()=>{
-  const p=project(); let reads=0;
+  const p={...project(),owner_id:'test'}; let reads=0;
   const pool=database(sql=>{
     if(sql.startsWith('SELECT name FROM'))return {rows:[{name:'Usuário sintético'}]};
     if(sql.includes('FROM vault.projects'))return {rows:reads++?[{...p,version:1}]:[]};

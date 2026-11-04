@@ -2,21 +2,24 @@ const {randomUUID}=require('node:crypto');
 const {transaction}=require('../persistence/database.cjs');
 const {fail,createInviteToken,hashToken,validateAcceptance}=require('./policy.cjs');
 function createAuthRepository(pool,{photoBaseUrl='https://intranet-cifra.netlify.app/funcionarios/{cpf}.jpeg'}={}){
-  const lookup=async subject=>{
-    const row=(await pool.query('SELECT id,name,active,cpf FROM vault.internal_users WHERE auth_subject=$1',[subject])).rows[0];
-    if(!row)return null;
+  function photoFor(row){
     let photoUrl=null;
     if(/^\d{11}$/.test(row.cpf||''))try{
       const url=new URL(photoBaseUrl.replace('{cpf}',row.cpf));
       if(url.protocol==='https:'&&photoBaseUrl.includes('{cpf}')&&!url.username&&!url.password)photoUrl=url.href;
     }catch{/* Invalid configuration keeps the initials fallback. */}
-    return {id:row.id,name:row.name,active:row.active,photoUrl};
+    return photoUrl;
+  }
+  const lookup=async subject=>{
+    const row=(await pool.query('SELECT id,name,active,cpf FROM vault.internal_users WHERE auth_subject=$1',[subject])).rows[0];
+    if(!row)return null;
+    return {id:row.id,name:row.name,active:row.active,photoUrl:photoFor(row)};
   };
   async function active(client,id){
     if(!(await client.query('SELECT id FROM vault.internal_users WHERE id=$1 AND active=true FOR SHARE',[id])).rows.length)throw fail(403,'Acesso interno não autorizado.');
   }
   return {lookup,
-    async listUsers(){return (await pool.query('SELECT id,name FROM vault.internal_users WHERE active=true ORDER BY name,id')).rows;},
+    async listUsers(){return (await pool.query('SELECT id,name,cpf FROM vault.internal_users WHERE active=true ORDER BY name,id')).rows.map(row=>({id:row.id,name:row.name,photoUrl:photoFor(row)}));},
     async listInvites(issuer){return (await pool.query('SELECT id,created_at,expires_at,consumed_at,revoked_at FROM vault.invitations WHERE issuer_id=$1 ORDER BY created_at DESC',[issuer])).rows;},
     async invite(issuer){return transaction(pool,async client=>{
       await active(client,issuer);

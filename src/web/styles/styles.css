@@ -53,3 +53,29 @@ dialog{width:min(780px,calc(100% - 32px));max-height:90vh;max-height:90dvh;overf
   .view-tabs::after{position-anchor:--view-selected;left:anchor(left);width:anchor-size(width)}
 }
 @media(prefers-reduced-motion:no-preference){.view-tabs::after{transition:left .3s cubic-bezier(.22,1,.36,1),width .3s cubic-bezier(.22,1,.36,1)}}
+
+/* Management controls retain native keyboard and checkbox behavior. */
+#managed-owner-field[hidden],#legacy-owner-field[hidden],#project-visibility[hidden]{display:none}
+#project-visibility{min-width:0;margin:24px 0;padding:16px;border:1px solid var(--line,#d6dae5);border-radius:12px}
+#project-visibility legend{padding:0 6px;font-weight:600}
+.field-help{font-size:.875rem;line-height:1.5;color:var(--muted,#5b6478);margin:8px 0}
+#project-visibility .checkbox-field{display:flex;align-items:center;gap:12px;min-height:48px;cursor:pointer}
+#project-visibility input[type=checkbox]{width:20px;height:20px;flex:0 0 20px;accent-color:var(--blue)}
+#project-visibility:disabled{opacity:.75}
+.project-dates-cost{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.project-dates-cost label,.project-dates-cost input,#managed-owner-field{min-width:0}
+@media(max-width:600px){.project-dates-cost{grid-template-columns:1fr}}
+@supports(appearance:base-select){
+  #project-owner-id,#project-owner-id::picker(select){appearance:base-select}
+  #project-owner-id{width:100%;min-width:0}
+  #project-owner-id>button{display:flex;align-items:center;width:100%;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:start}
+  #project-owner-id selectedcontent,#project-owner-id option{display:flex;align-items:center;gap:10px;min-width:0}
+  #project-owner-id option{padding:10px 8px;min-height:48px;justify-content:flex-start;text-align:start;background:transparent}
+  #project-owner-id option::checkmark{order:1;margin-inline-start:auto;margin-inline-end:8px}
+  #project-owner-id option:checked{font-weight:600}
+  #project-owner-id option:hover,#project-owner-id option:focus-visible{background:#e3e6fa}
+  #project-owner-id::picker(select){background:white;color:#243052;border:1px solid #ccd2e2;border-radius:10px;padding:4px;max-height:280px;width:anchor-size(width)}
+  .owner-avatar{position:relative;display:inline-grid;place-items:center;width:28px;height:28px;flex:0 0 28px;overflow:hidden;border-radius:50%;background:#e3e6fa;color:#243052;font-size:10px;font-weight:600}
+  .owner-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .owner-avatar img[hidden]{display:none}
+}

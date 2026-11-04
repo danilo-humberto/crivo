@@ -1,0 +1,22 @@
+# Etapa 5 — Gestão de projetos
+
+Implementação solicitada em 4 de novembro de 2026, conforme o [plano aprovado](plano-avaliacoes.md).
+
+## Escopo e abordagem
+
+- Reutilizar os campos existentes e a API interna: selecionar usuário ativo como responsável e controlar separadamente a visibilidade do projeto e do link.
+- Novos projetos começam privados. A publicação é uma alteração explícita posterior, independente do status.
+- Preservar o responsável antigo enquanto não houver seleção explícita; não inferir vínculos por nomes. Responsáveis já vinculados e posteriormente inativos podem ser mantidos, mas não escolhidos para outra atribuição.
+- Remover projetos sem avaliações; arquivar os que possuem avaliações, inclusive ocultas, preservando alternativas, avaliações e histórico. A decisão ocorre na transação, sob bloqueio do projeto.
+- Registrar autor e snapshots das alterações, inclusive visibilidade, vínculo de responsável e arquivamento.
+- Preservar o modo local legado. Catálogo público e curadoria pertencem às próximas etapas.
+
+Reutilizar o schema evita migration e duplicação de dados. Preservar o nome legado permite editar projetos antigos antes do mapeamento, ao custo de manter a indicação de vínculo pendente. Exigir mapeamento de todo o acervo antes de qualquer edição bloquearia correções sem benefício para esta etapa.
+
+## Aceite e validação
+
+TDD para seleção válida/inválida, preservação do legado, visibilidade, criação privada, arquivamento e auditoria transacional. Executar suíte local, build, sintaxe e revisão do diff; usar apenas dados sintéticos e conexões simuladas. Conferir formulário e auditoria por testes de interface isolados quando disponíveis.
+
+## Limites
+
+Sem dependências novas, alterações de autenticação, migration ou acesso remoto. Integração real com banco, produção, commit e publicação não fazem parte desta execução. A consulta pública segura será implementada na etapa 6. As pendências reais de logout e recuperação da etapa 4 permanecem independentes.

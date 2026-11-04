@@ -5,6 +5,11 @@ const {requireInternal}=require('../server/auth/policy.cjs');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const session={user:{id:'subject',emailVerified:true},session:{expiresAt:'2099-01-01'}};
+
+test('lista de responsáveis fornece foto e nome sem devolver CPF',async()=>{
+  const repository=createAuthRepository({query:async()=>({rows:[{id:'u',name:'Pessoa',cpf:'01234567890'},{id:'v',name:'Sem foto',cpf:null}]})},{photoBaseUrl:'https://example.invalid/{cpf}.jpeg'});
+  assert.deepEqual(await repository.listUsers(),[{id:'u',name:'Pessoa',photoUrl:'https://example.invalid/01234567890.jpeg'},{id:'v',name:'Sem foto',photoUrl:null}]);
+});
 test('perfil compõe foto com CPF salvo, sem devolver campo de CPF',async()=>{
   const pool={query:async()=>({rows:[{id:'local',name:'Pessoa Teste',active:true,cpf:'01234567890'}]})};
   const repository=createAuthRepository(pool,{photoBaseUrl:'https://example.invalid/photos/{cpf}.jpeg'});

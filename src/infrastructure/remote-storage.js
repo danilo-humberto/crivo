@@ -10,13 +10,13 @@
     const data=await response.json();if(!response.ok)throw Error(data.error||'Não foi possível salvar.');return data;
   }
   async function read(){const state=await request('/api/projects');return {raw:JSON.stringify(state),state};}
-  root.VaultStorage={remote:true,KEY:null,initialize:read,read,async commit(_storage,raw,next){
+  root.VaultStorage={remote:true,KEY:null,initialize:read,read,listUsers:()=>request('/api/users'),async commit(_storage,raw,next){
     const previous=JSON.parse(raw).projects;
     const changes=next.filter(p=>!previous.some(old=>old.id===p.id)||root.VaultAudit.changedFields(previous.find(old=>old.id===p.id),p).length);
     const removed=previous.filter(p=>!next.some(item=>item.id===p.id));
     if(changes.length+removed.length>1)throw Error('Salve um projeto por vez.');
     if(changes.length){const p=changes[0],old=previous.find(item=>item.id===p.id);await request('/api/projects','POST',{project:p,expectedVersion:old?.version??null});}
-    if(removed.length)await request(`/api/projects/${encodeURIComponent(removed[0].id)}`,'DELETE',{expectedVersion:removed[0].version});
-    return read();
+    const removal=removed.length?await request(`/api/projects/${encodeURIComponent(removed[0].id)}`,'DELETE',{expectedVersion:removed[0].version}):null;
+    return {...await read(),removal};
   }};
 })(globalThis);

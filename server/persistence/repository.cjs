@@ -52,12 +52,18 @@ function createRepository(pool) {
         const actor=(await client.query('SELECT name FROM vault.internal_users WHERE id=$1 AND active=true FOR SHARE',[actorId])).rows[0];
         if(!actor)throw Object.assign(Error('Acesso interno não autorizado.'),{status:403});
         const before=await readProject(client,id,true);
-        if(!before||before.version!==expectedVersion)throw Object.assign(Error('Conflito de versão. Recarregue os dados.'),{status:409});
-        if((await client.query('SELECT id FROM vault.reviews WHERE project_id=$1 LIMIT 1',[id])).rows.length)throw Object.assign(Error('Projeto com avaliações não pode ser excluído. Arquivamento será disponibilizado na etapa 5.'),{status:409});
+        if(!before||before.archived_at||before.version!==expectedVersion)throw Object.assign(Error('Conflito de versão. Recarregue os dados.'),{status:409});
+        // Review insertion takes FOR SHARE on this same row, serializing with removal.
+        if((await client.query('SELECT id FROM vault.reviews WHERE project_id=$1 LIMIT 1',[id])).rows.length){
+          await client.query('UPDATE vault.projects SET archived_at=clock_timestamp(),version=version+1 WHERE id=$1',[id]);
+          const after=await readProject(client,id);
+          await writeAudit(client,{projectId:id,action:'archived',actorId,actor:actor.name,before,after});
+          return {id,action:'archived'};
+        }
         await client.query('DELETE FROM vault.alternatives WHERE project_id=$1',[id]);
         await client.query('DELETE FROM vault.projects WHERE id=$1',[id]);
         await writeAudit(client,{projectId:id,action:'deleted',actorId,actor:actor.name,before});
-        return {id};
+        return {id,action:'deleted'};
       });
     },
     // Server/admin only: callers must authenticate and authorize before use.
@@ -77,6 +83,19 @@ function createRepository(pool) {
         const before=await readProject(client,project.id,true);
         if((!before&&expectedVersion!==null)||(before&&before.version!==expectedVersion))throw Object.assign(Error('Conflito de versão.'),{status:409});
         if(before?.archived_at)throw Error('Projeto arquivado.');
+        for(const field of ['is_public','show_solution_url'])if(project[field]!==undefined&&typeof project[field]!=='boolean')throw Object.assign(Error('Visibilidade inválida.'),{status:400});
+        const ownerId=project.owner_id===undefined?(before?.owner_id??null):project.owner_id;
+        if(ownerId!==null&&(typeof ownerId!=='string'||!ownerId.trim()))throw Object.assign(Error('Responsável inválido.'),{status:400});
+        let owner=before?.owner;
+        if(ownerId&&ownerId!==before?.owner_id){
+          const selected=(await client.query('SELECT name FROM vault.internal_users WHERE id=$1 AND active=true FOR SHARE',[ownerId])).rows[0];
+          if(!selected)throw Object.assign(Error('Responsável inativo ou inexistente.'),{status:400});
+          owner=selected.name;
+        }else if(!before||(!ownerId&&before.owner_id))throw Object.assign(Error('Responsável obrigatório. Selecione um usuário ativo.'),{status:400});
+        project={...project,owner,owner_id:ownerId,
+          is_public:before?(project.is_public??before.is_public??false):false,
+          show_solution_url:before?(project.show_solution_url??before.show_solution_url??false):false,
+          archived_at:before?.archived_at??null};
         if(before&&!changedFields(before,project).length)return before;
         if(!before)await insertProject(client,project);
         else {
@@ -85,6 +104,8 @@ function createRepository(pool) {
           await client.query('DELETE FROM vault.alternatives WHERE project_id=$1',[project.id]);
           await insertAlternatives(client,project);
         }
+        await client.query('UPDATE vault.projects SET owner_id=$2,is_public=$3,show_solution_url=$4 WHERE id=$1',
+          [project.id,project.owner_id,project.is_public,project.show_solution_url]);
         const after=await readProject(client,project.id);
         await writeAudit(client,{projectId:project.id,action:before?'updated':'created',actorId,actor:actor.name,before,after});
         return after;
