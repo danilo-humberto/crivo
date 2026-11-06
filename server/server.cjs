@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {createApi,json}=require('./auth/http.cjs');
 const {createPublicHandler}=require('./public/http.cjs');
+const {createReviewHandler}=require('./public/review-http.cjs');
 // Keep public URLs stable and expose only explicitly listed assets.
 const files = new Map(Object.entries({
   '/':'src/web/pages/index.html', '/index.html':'src/web/pages/index.html',
@@ -11,6 +12,8 @@ const files = new Map(Object.entries({
   '/app.js':'src/web/scripts/app.js', '/styles.css':'src/web/styles/styles.css',
   '/motion.css':'src/web/styles/motion.css',
   '/catalog.css':'src/web/styles/catalog.css',
+  '/reviews.js':'src/web/scripts/reviews.js',
+  '/review-toast.js':'src/web/scripts/review-toast.js',
   '/profile.js':'src/web/scripts/profile.js', '/profile.css':'src/web/styles/profile.css',
   '/auth':'src/web/pages/auth.html', '/auth.css':'src/web/styles/auth.css',
   '/auth.js':'dist/auth.js', '/remote-storage.js':'src/infrastructure/remote-storage.js'
@@ -19,7 +22,8 @@ const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charse
 function createServer(options={}) {
   const mode=options.mode||'managed';
   const api=createApi({origin:'http://127.0.0.1:4173',...options});
-  const publicHandle=createPublicHandler(options.publicRepository);
+  const reviews=createReviewHandler(options.publicRepository,options.reviewRepository,{origin:options.origin});
+  const publicHandle=createPublicHandler(options.publicRepository,options.reviewRepository?reviews.pageData:null);
   return http.createServer(async(req,res)=>{
     res.setHeader('Referrer-Policy','no-referrer');
     res.setHeader('X-Content-Type-Options','nosniff');
@@ -31,6 +35,7 @@ function createServer(options={}) {
       const canonical=new URL(options.origin);canonical.pathname=pathname;canonical.search=new URL(req.url,'http://localhost').search;
       res.writeHead(302,{Location:canonical.href});return res.end();
     }
+    if(await reviews.handle(req,res,url))return;
     if(await publicHandle(req,res,url))return;
     if(pathname.startsWith('/api/'))return await api.handle(req,res,pathname);
     if(!['GET','HEAD'].includes(req.method)){res.writeHead(405);return res.end();}
@@ -57,6 +62,7 @@ function start(){
     options.authRepository=require('./auth/repository.cjs').createAuthRepository(pool,{photoBaseUrl:process.env.EMPLOYEE_PHOTO_BASE_URL});
     options.repository=require('./persistence/repository.cjs').createRepository(pool);
     options.publicRepository=require('./persistence/public-repository.cjs').createPublicRepository(pool);
+    options.reviewRepository=require('./persistence/review-repository.cjs').createReviewRepository(pool,{photoBaseUrl:process.env.EMPLOYEE_PHOTO_BASE_URL});
   }
   if(options.mode!=='local'&&process.env.NEON_AUTH_BASE_URL){
     options.auth=require('./auth/provider.cjs').createProvider({baseUrl:process.env.NEON_AUTH_BASE_URL,cookieSecret:process.env.NEON_AUTH_COOKIE_SECRET,origin});

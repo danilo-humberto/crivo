@@ -11,7 +11,7 @@ function normalizeCpf(value) {
   return cpf;
 }
 function validateReview(review) {
-  if(!review||typeof review.name!=='string'||!review.name.trim()||typeof review.comment!=='string'||!review.comment.trim()||!Number.isInteger(review.rating)||review.rating<1||review.rating>5)throw Error('Avaliação inválida.');
+  if(!review||typeof review.name!=='string'||!review.name.trim()||review.name.length>120||typeof review.comment!=='string'||!review.comment.trim()||review.comment.length>2000||!Number.isInteger(review.rating)||review.rating<1||review.rating>5)throw Error('Informe nome (até 120 caracteres), comentário (até 2.000 caracteres) e nota inteira de 1 a 5.');
   return {name:review.name.trim(),comment:review.comment.trim(),rating:review.rating,cpf:normalizeCpf(review.cpf)};
 }
 module.exports={normalizeCpf,validateReview};

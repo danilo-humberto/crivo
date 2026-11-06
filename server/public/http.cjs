@@ -1,7 +1,7 @@
 const {filterProjects,statuses,categories}=require('../../src/domain/core.js');
 const {catalogPage,projectPage,errorPage}=require('./pages.cjs');
 
-function createPublicHandler(repository){
+function createPublicHandler(repository,reviewPageData=null){
   return async function handle(req,res,url){
     const path=url.pathname;
     const api=path==='/api/public/projects'||path.startsWith('/api/public/projects/');
@@ -33,7 +33,8 @@ function createPublicHandler(repository){
       }
       const project=await repository.getProject(id);
       if(!project)return error(404);
-      return send(200,api?project:projectPage(project));
+      if(!api&&reviewPageData)res.setHeader('Referrer-Policy','same-origin');
+      return send(200,api?project:projectPage(project,reviewPageData?await reviewPageData(id,url):null));
     }catch{
       // Database/provider details must never become public messages or logs.
       return error(503);

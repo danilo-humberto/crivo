@@ -12,11 +12,11 @@ O plano foi aprovado em 3 de novembro de 2026. Os requisitos abaixo descrevem o 
 | 4. Autenticação | Implementada; migration 002 e primeiro usuário concluídos conforme registro. | Logout, novo login, recuperação reais e convite com segunda conta de ponta a ponta. |
 | 5. Gestão | Responsável, visibilidade independente, criação privada e arquivamento com auditoria implementados. | Integração real de arquivamento/concorrência e validação visual completa desse fluxo. |
 | 6. Catálogo público | Implementado e validado localmente: catálogo, página individual, projeção pública e bloqueio de privados/arquivados por URL. Commit e push da branch autorizados em 6 de novembro. | Integração das consultas em PostgreSQL isolado; sem autorização de merge ou deploy. Evidências no [plano da etapa 6](implementacao-etapa-6.md). |
-| 7. Avaliações e fotos | Validação, inserção interna e unicidade no banco preparadas. | API pública, formulário, listagem, fotos/fallback e proteção contra abuso. |
+| 7. Avaliações e fotos | Implementada e aprovada para commit/integração/push. 87 testes locais e ensaio SQL em PostgreSQL isolado aprovados; leitura em produção conferida. Revisão independente sem bloqueadores de código. | Fluxo completo via driver/aplicação e proteção no runtime de publicação. Produção sem projetos públicos ativos na conferência. Evidências no [plano da etapa 7](implementacao-etapa-7.md). |
 | 8. Indicadores e curadoria | Não implementados; schema prevê visibilidade e ações de auditoria. | Estrelas, média, contagem, comentários, ocultação/reexibição e auditoria. |
 | 9. Validação e publicação | Há ensaios históricos de backup/restauração; entrega final pendente. | Fluxo completo, permissões, acessibilidade, celular, operação e publicação autorizada. |
 
-A base de 63 testes passou na inspeção documental de 6 de novembro de 2026; testes adicionais e evidências da etapa 6 estão no seu plano. Isso não substitui os testes reais pendentes. A próxima etapa funcional é a 7; as pendências anteriores permanecem abertas.
+A base de 63 testes passou na inspeção documental de 6 de novembro de 2026; testes adicionais e evidências das etapas 6 e 7 estão nos seus planos. Isso não substitui os testes reais pendentes. A próxima etapa funcional é a 8, após revisão humana da entrega local da etapa 7; as pendências anteriores permanecem abertas.
 
 ## Contexto atual
 

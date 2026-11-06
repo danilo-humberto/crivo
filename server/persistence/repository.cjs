@@ -138,14 +138,14 @@ function createRepository(pool) {
       const review=validateReview(input);
       return transaction(pool,async client=>{
         const project=(await client.query('SELECT id FROM vault.projects WHERE id=$1 AND is_public=true AND archived_at IS NULL FOR SHARE',[projectId])).rows[0];
-        if(!project)throw Error('Projeto indisponível.');
+        if(!project)throw Object.assign(Error('Projeto indisponível.'),{status:404});
         const id=randomUUID();
         try {
           await client.query('INSERT INTO vault.reviews(id,project_id,name,cpf,rating,comment) VALUES ($1,$2,$3,$4,$5,$6)',
             [id,projectId,review.name,review.cpf,review.rating,review.comment]);
         } catch(error) {
           // Do not propagate Postgres detail: it can contain the CPF.
-          if(error.code==='23505')throw Error('Avaliação já registrada neste projeto.');
+          if(error.code==='23505')throw Object.assign(Error('Avaliação já registrada neste projeto.'),{status:409});
           throw Error('Não foi possível registrar a avaliação.');
         }
         return {id};

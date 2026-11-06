@@ -1,6 +1,6 @@
 # Vault TI
 
-Aplicativo em HTML, CSS e JavaScript com servidor Node, autenticação Neon Managed Better Auth e persistência PostgreSQL no Neon. A gestão inclui as funcionalidades da etapa 5; a etapa 6 acrescenta catálogo e páginas públicas de projetos. Avaliações pela interface, indicadores e curadoria ainda não estão disponíveis.
+Aplicativo em HTML, CSS e JavaScript com servidor Node, autenticação Neon Managed Better Auth e persistência PostgreSQL no Neon. A gestão inclui as funcionalidades da etapa 5; a etapa 6 acrescenta catálogo e páginas públicas de projetos, e a etapa 7 implementa avaliações públicas com fotos. Indicadores agregados e curadoria ainda não estão disponíveis.
 
 Estado consolidado em 6 de novembro de 2026 por inspeção do código e documentação. Operações remotas citadas são registros anteriores, não uma nova conferência do ambiente remoto.
 
@@ -9,6 +9,7 @@ Estado consolidado em 6 de novembro de 2026 por inspeção do código e document
 - [Plano aprovado e acompanhamento](docs/plano-avaliacoes.md): requisitos e pendências por etapa.
 - [Arquitetura](docs/arquitetura-etapa-2.md): escolhas adotadas e validação pendente no Cloudflare.
 - Planos de [persistência](docs/implementacao-etapa-3.md), [autenticação](docs/implementacao-etapa-4.md), [gestão](docs/implementacao-etapa-5.md) e [catálogo público](docs/implementacao-etapa-6.md).
+- [Avaliações e fotos](docs/implementacao-etapa-7.md): implementação, limites de proteção contra abuso e evidências locais.
 - [Histórico](docs/historico-implementacao.md): evidências RED/GREEN, inspeções de navegador, revisões, migrations e recuperação anteriores. Estados intermediários desse histórico não substituem este README.
 
 ## Executar
@@ -44,6 +45,28 @@ O catálogo apresenta fichas com área, status, resumo, responsável e datas, co
 
 Para prévia isolada, execute `node tests/fixtures/public-preview.cjs` e abra http://127.0.0.1:4186/catalogo. Usa somente quatro projetos sintéticos em memória, sem banco, Auth ou importação; encerre com Ctrl+C. Não representa o acervo real.
 
+## Avaliações públicas
+
+### Padrão de feedback da interface
+
+Use **toast para feedback das ações do usuário**, como confirmação de publicação, salvamento, exclusão ou cópia. A exceção são mensagens de preenchimento e validação de formulários: mantenha erros e orientações no próprio formulário, junto ao campo ou em um resumo acessível. Após concluir o envio com sucesso, use toast, como na publicação de avaliações.
+
+Toasts devem anunciar a mensagem com `role="status"`, sem mover o foco, oferecer fechamento manual e desaparecer após seis segundos (preservando a notificação enquanto seu botão está focado). O toast de avaliações usa Popover manual com alternativa de posicionamento fixo; remove `enviada` da URL para não repetir a confirmação ao recarregar. Sem JavaScript, a confirmação permanece visível. Este é o padrão para novas alterações; não implica revisão retroativa de todas as telas existentes.
+
+A página individual permite avaliar sem login: nome (até 120 caracteres), CPF válido, nota inteira de 1 a 5 e comentário (até 2.000 caracteres). O formulário usa POST nativo, funciona sem JavaScript e redireciona após a gravação. Uma avaliação por CPF/projeto, sem edição; avaliações ocultas continuam ocupando essa combinação. A inserção reutiliza a transação, o bloqueio do projeto e a restrição UNIQUE existentes. Integração e concorrência em PostgreSQL real permanecem pendentes.
+
+`GET/HEAD /api/public/projects/~:id/reviews?page=1` retorna até 5 avaliações visíveis, `nextPage` e `formToken`. O POST nessa rota recebe JSON com nome (`name`), CPF (`cpf`), nota numérica (`rating`), comentário (`comment`) e `formToken`. Exige `Origin` correspondente a `APP_ORIGIN`. A listagem seleciona apenas nome, nota, comentário, data e identificador, além do CPF usado exclusivamente para montar `photoUrl`. Não retorna campo CPF separado. Projeto privado, arquivado ou ausente recebe 404; duplicidade recebe 409. Fotos são carregadas diretamente pelo navegador, sem proxy, e o avatar padrão permanece durante carregamento/falha ou sem JavaScript.
+
+O token é assinado por processo, vinculado ao projeto, expira em uma hora e deixa de valer ao reiniciar o servidor; reabra a página nesses casos. Corpo limitado a 16 KiB, com dez segundos para leitura. Limite de dez tentativas por IP e 200 por processo a cada dez minutos, com 429 e `Retry-After`; inclui tentativas inválidas. Usa o IP do socket, sem confiar em `X-Forwarded-For`. Atrás de proxy os visitantes compartilham o limite do proxy; múltiplas instâncias têm limites e tokens independentes. Validar controle distribuído/na borda antes de publicar nessa arquitetura. Não é verificação de identidade nem proteção completa contra ataques distribuídos.
+
+Somente páginas com formulário usam `Referrer-Policy: same-origin`, para preservar `Origin` no POST nativo; referências externas continuam omitidas e fotos usam `no-referrer`. Erros de validação preservam nome, nota e comentário, sem devolver o CPF digitado. Não há registros de corpo/CPF no servidor.
+
+A prévia sintética também aceita avaliações em memória, perdidas ao encerrar; usa foto local inexistente para conferir o avatar sem acessar o servidor de fotos real. `VAULT_PREVIEW_PORT` permite escolher outra porta. Nunca informe dados pessoais reais na prévia.
+
+Para testar a paginação com carga pronta, execute `node tests/fixtures/public-preview.cjs --seed-reviews`. O Portal de atendimento inicia com 12 avaliações fictícias: cinco na primeira página, cinco na segunda e duas na terceira. A carga é somente em memória, sem CPF e sem conexão ao banco; os demais projetos permanecem sem avaliações.
+
+O título Avaliações mostra um badge com o total de avaliações visíveis. A navegação usa “← Voltar”, “Página X de Y” e “Próximo →”, desabilitando as extremidades. A API também retorna `total`, `totalPages` e `page`; contagem e registros usam a mesma consulta SQL e os mesmos filtros públicos. Páginas além do total retornam a última disponível.
+
 ## Autenticação, convites e fotos
 
 Conta no provedor não concede acesso interno automaticamente. Cada operação protegida verifica sessão no provedor, e-mail verificado e autorização ativa. Escritas exigem origem permitida e token CSRF; autoria vem da sessão.
@@ -52,13 +75,13 @@ Usuários internos ativos geram links para compartilhamento manual, sem vínculo
 
 O primeiro usuário já foi provisionado conforme o registro operacional. Para outro ambiente vazio, `node server/bootstrap-cli.cjs` exige autorização, identidade esperada, `VAULT_BOOTSTRAP_APPROVED=yes` e entrada JSON privada via stdin com `subject`, `email`, `name`, `cpf` e `sessionCookie`. Não fornecer valores sensíveis em argumentos ou chat. O comando confere identidade/e-mail e recusa provisionamento se já existir usuário interno. Não há endpoint público de bootstrap.
 
-Perfil e responsáveis usam `EMPLOYEE_PHOTO_BASE_URL`, padrão `https://intranet-cifra.netlify.app/funcionarios/{cpf}.jpeg`. Exige HTTPS e marcador `{cpf}`. A URL contém CPF por decisão aprovada, sem campo CPF separado; o navegador carrega diretamente da origem. Não há R2, proxy ou cópia local. Iniciais permanecem durante carregamento e falhas. Fotos de avaliações dependem da etapa 7.
+Perfil, responsáveis e avaliações usam `EMPLOYEE_PHOTO_BASE_URL`, padrão `https://intranet-cifra.netlify.app/funcionarios/{cpf}.jpeg`. Exige HTTPS e marcador `{cpf}`. A URL contém CPF por decisão aprovada, sem campo CPF separado; o navegador carrega diretamente da origem. Não há R2, proxy ou cópia local. Perfil e responsáveis mantêm iniciais durante carregamento e falhas; avaliações mantêm avatar padrão.
 
 Login, logout e recuperação estão implementados. Os registros confirmam cadastro, verificação e primeiro acesso à gestão; logout, novo login e recuperação reais ainda precisam de validação completa. O fluxo de convite com segunda conta também precisa de validação de ponta a ponta em desenvolvimento isolado.
 
 ## Persistência e importação
 
-As migrations 001 e 002 constam como aplicadas no registro operacional autorizado. A biblioteca de persistência valida avaliações e CPF; o schema garante `UNIQUE(project_id, cpf)`, inclusive após ocultação. Ainda não existem API pública de avaliações, formulário ou listagem de avaliações. A etapa 6 não exige migration.
+As migrations 001 e 002 constam como aplicadas no registro operacional autorizado. A biblioteca de persistência valida avaliações e CPF; o schema garante `UNIQUE(project_id, cpf)`, inclusive após ocultação. A etapa 7 conecta essa persistência à API pública e ao formulário. As etapas 6 e 7 não exigem migration.
 
 A gestão remota não importa automaticamente nem usa localStorage como fallback. A migração do acervo antigo continua pendente.
 
@@ -82,6 +105,7 @@ Use explicitamente `VAULT_MODE=local`, fora de produção, e a origem original d
 - `server/server.cjs`: servidor Node e lista explícita de assets.
 - `server/auth/`: integração Auth, políticas, API protegida, convites e bootstrap.
 - `server/public/`: rotas de leitura e renderização HTML do catálogo/detalhes; `src/web/styles/catalog.css`: estilos públicos.
+- `server/public/review-http.cjs`, `review-protection.cjs` e `server/persistence/review-repository.cjs`: envio, limites e listagem de avaliações; `src/web/scripts/reviews.js`: fotos e melhoria progressiva do formulário.
 - `server/persistence/`, `server/migrations/` e CLIs: banco e importação.
 - `tests/`: suíte local; `tests/integration/`: PostgreSQL descartável.
 
@@ -92,6 +116,8 @@ A interface usa Outfit e Source Sans 3 com fallback, abas navegáveis por teclad
 ## Validação e limites
 
 Na inspeção documental de 6 de novembro de 2026, a base de 63 testes passou. Na etapa 6, foram acrescentados testes de leitura pública, campos permitidos, links, métodos, erros, escape e IDs legados. Evidências finais no [plano da etapa 6](docs/implementacao-etapa-6.md). Testes locais usam dados sintéticos e provedores/conexões simulados; não comprovam concorrência real no PostgreSQL.
+
+Na entrega final da etapa 7, a suíte local passou com 87/87 testes, além de build e diff. Fluxo de envio/correção e avatar conferidos no Chrome em desktop e celular; revisão independente final sem bloqueadores de código. Ensaio SQL em PostgreSQL 18 isolado confirmou paginação, contagem, visibilidade e unicidade concorrente. Leitura autorizada em produção confirmou schema, constraints e execução da consulta; não havia projeto público ativo. A suíte completa via driver e escritas de aplicação continuam pendentes. Evidências e limites no [plano da etapa 7](docs/implementacao-etapa-7.md).
 
 Comandos: `npm test`, `npm run build` e `npm run test:integration`. Integração exige desenvolvimento descartável, migrations 001/002, `VAULT_INTEGRATION_APPROVED=yes`, identidade esperada e autorização específica. Não executar contra produção. A suíte pode deixar registros sintéticos para inspeção.
 
