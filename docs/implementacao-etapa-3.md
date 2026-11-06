@@ -20,7 +20,7 @@ A base anterior tinha 16 testes e usava localStorage. A evolução do versioname
 
 Preparar migrations SQL revisáveis, repositório de persistência no servidor e importador administrativo. Na etapa 3, a interface foi mantida no armazenamento local; a etapa 4 posteriormente integrou a API protegida. Não expor uma API de escrita sem autenticação para antecipar a troca de persistência da interface.
 
-Essa separação permitiu preparar a persistência antes da API autenticada, integrada na etapa 4. A conclusão da etapa 3 exige testes reais em Postgres isolado, não apenas mocks ou inspeção de SQL.
+Essa separação permitiu preparar a persistência antes da API autenticada, integrada na etapa 4. A conclusão da etapa 3 exige integração completa via aplicação/driver em Postgres isolado. O ensaio SQL da [etapa 7](implementacao-etapa-7.md) confirmou unicidade concorrente e manutenção do bloqueio após ocultação, mas não substitui a suíte de persistência/importação pendente.
 
 ## Modelo adotado
 

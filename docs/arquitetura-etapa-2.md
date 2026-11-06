@@ -36,7 +36,7 @@ O Neon gerencia senhas e sessões; o Worker não executará hash de senhas por c
 
 ## Banco e contratos aprovados
 
-Consultas públicas de projetos foram implementadas na etapa 6 em Node, com validação local. Avaliações públicas e curadoria continuam como requisitos das etapas 7/8, ainda não implementados. O schema e a gestão interna já existem.
+Consultas públicas de projetos (etapa 6) e avaliações públicas com fotos (etapa 7) estão implementadas em Node e integradas à main local. A etapa 7 inclui comentários paginados, estrelas individuais e total de avaliações visíveis na página do projeto. Indicadores agregados nos cards e curadoria com auditoria estão implementados localmente na [etapa 8](implementacao-etapa-8.md), sem migration ou dependências novas e aprovados para integração à main em 6 de novembro de 2026. A validação local e o ensaio SQL isolado estão registrados no [plano da etapa 7](implementacao-etapa-7.md); integração completa via aplicação/driver e proteção contra abuso no runtime de publicação continuam pendentes. O schema e a gestão interna já existem.
 
 Modelo adotado: usuários internos vinculados à identidade de autenticação, projetos, alternativas, avaliações, auditoria e convites, com Neon Managed Better Auth. Não definir chaves estrangeiras para tabelas gerenciadas de autenticação antes de confirmar seus contratos.
 

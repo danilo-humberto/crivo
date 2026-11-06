@@ -16,6 +16,7 @@ Para infraestrutura e autenticação, consulte a [proposta técnica da etapa 2](
 - Não invente requisitos nem trate decisões técnicas pendentes do plano como aprovadas.
 - Se houver conflito entre plano, documentação e código, apresente as evidências e solicite decisão antes de alterar o comportamento envolvido.
 - Registre novas decisões aprovadas no plano, evitando documentação contraditória ou duplicada.
+- Ao finalizar qualquer implementação, atualize obrigatoriamente a documentação afetada: README, acompanhamento do plano e documento da etapa, conforme aplicável. Confira a consistência entre comportamento implementado, decisões aprovadas, testes realmente executados, limitações e pendências. Diferencie implementação, validação, commit, integração, push e deploy; preserve registros históricos identificados como tais e não declare operações sem evidência.
 - Escreva os planos de implementação de cada etapa de forma enxuta e direta, com escopo, abordagem recomendada, critérios de aceite e validação, riscos e decisões ou autorizações pendentes. Para escolhas relevantes, apresente as alternativas e seus trade-offs (benefícios, custos e limitações), justificando a recomendação. Evite repetir contexto, regras e requisitos já documentados; use links para as referências e detalhe apenas o necessário para decidir e executar a etapa.
 
 ## Segurança e aprovações

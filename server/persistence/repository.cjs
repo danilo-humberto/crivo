@@ -37,6 +37,39 @@ async function writeAudit(client,{id=randomUUID(),projectId,action,at=new Date()
 
 function createRepository(pool) {
   return {
+    async listProjectReviews(projectId,page=1){
+      if(!Number.isInteger(page)||page<1||page>10000)throw Object.assign(Error('Página inválida.'),{status:400});
+      return transaction(pool,async client=>{
+        await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
+        const project=(await client.query('SELECT id,title,owner_legacy AS owner FROM vault.projects WHERE id=$1 AND archived_at IS NULL',[projectId])).rows[0];
+        if(!project)throw Object.assign(Error('Projeto indisponível.'),{status:404});
+        const total=(await client.query('SELECT count(*)::int AS total FROM vault.reviews WHERE project_id=$1',[projectId])).rows[0].total;
+        const totalPages=Math.max(1,Math.ceil(total/10));page=Math.min(page,totalPages);
+        const {rows}=await client.query(`SELECT id,name,rating,comment,visible,created_at FROM vault.reviews
+          WHERE project_id=$1 ORDER BY created_at DESC,id DESC LIMIT 10 OFFSET $2`,[projectId,(page-1)*10]);
+        return {items:rows.map(({id,name,rating,comment,visible,created_at})=>({id,name,rating,comment,visible,createdAt:new Date(created_at).toISOString()})),total,totalPages,page};
+      });
+    },
+    async setReviewVisibility(projectId,reviewId,visible,{actorId,expectedVisible}={}){
+      if(typeof visible!=='boolean'||typeof expectedVisible!=='boolean')throw Object.assign(Error('Visibilidade inválida.'),{status:400});
+      return transaction(pool,async client=>{
+        const actor=(await client.query('SELECT name FROM vault.internal_users WHERE id=$1 AND active=true FOR SHARE',[actorId])).rows[0];
+        if(!actor)throw Object.assign(Error('Acesso interno não autorizado.'),{status:403});
+        // Same project lock order as insertion/removal; an archive cannot race this write.
+        const project=(await client.query('SELECT id,title,owner_legacy AS owner FROM vault.projects WHERE id=$1 AND archived_at IS NULL FOR SHARE',[projectId])).rows[0];
+        if(!project)throw Object.assign(Error('Projeto indisponível.'),{status:404});
+        const row=(await client.query('SELECT id,name,rating,comment,visible,created_at FROM vault.reviews WHERE project_id=$1 AND id=$2 FOR UPDATE',[projectId,reviewId])).rows[0];
+        if(!row)throw Object.assign(Error('Avaliação indisponível.'),{status:404});
+        if(row.visible!==expectedVisible)throw Object.assign(Error('A avaliação mudou. Atualize a lista antes de tentar novamente.'),{status:409});
+        if(row.visible===visible)return {id:reviewId,visible};
+        const review={id:row.id,name:row.name,rating:row.rating,comment:row.comment,visible:row.visible};
+        const before={id:project.id,title:project.title,owner:project.owner,review};
+        const after={...before,review:{...review,visible}};
+        await client.query('UPDATE vault.reviews SET visible=$3 WHERE project_id=$1 AND id=$2',[projectId,reviewId,visible]);
+        await writeAudit(client,{projectId,action:visible?'review_shown':'review_hidden',actorId,actor:actor.name,before,after});
+        return {id:reviewId,visible};
+      });
+    },
     async listState(){return transaction(pool,async client=>{
       await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
       const ids=(await client.query('SELECT id FROM vault.projects WHERE archived_at IS NULL ORDER BY requested DESC,id')).rows;

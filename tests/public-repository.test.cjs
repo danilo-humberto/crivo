@@ -6,8 +6,8 @@ const row={id:'public',title:'Projeto',description:'Resumo',solution:'Solução'
 test('consulta pública seleciona somente campos permitidos e filtra privados/arquivados no SQL',async()=>{
   const calls=[];
   const repo=createPublicRepository({query:async(sql,params)=>{calls.push({sql,params});return {rows:[{...row,cost:999,cpf:'sensitive',owner_id:'internal',audit:[],alternatives:[]}]};}});
-  assert.deepEqual(await repo.listProjects(),[Object.fromEntries(Object.entries(row).filter(([key])=>key!=='url'))]);
-  assert.deepEqual(await repo.getProject("id' OR true --"),Object.fromEntries(Object.entries(row).filter(([key])=>key!=='url')));
+  assert.deepEqual(await repo.listProjects(),[{...Object.fromEntries(Object.entries(row).filter(([key])=>key!=='url')),reviewCount:0,reviewAverage:null}]);
+  assert.deepEqual(await repo.getProject("id' OR true --"),{...Object.fromEntries(Object.entries(row).filter(([key])=>key!=='url')),reviewCount:0,reviewAverage:null});
   for(const {sql} of calls){
     assert.match(sql,/is_public\s*=\s*true/i);assert.match(sql,/archived_at IS NULL/i);
     assert.match(sql,/CASE WHEN show_solution_url THEN solution_url ELSE NULL END/i);

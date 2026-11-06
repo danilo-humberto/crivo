@@ -16,7 +16,14 @@ function card(project){
 <header><div class="catalog-card-meta"><span class="project-area">${escape(project.category)}</span>${badge(project)}</div><h2><a href="${escape(publicProjectPath(project.id))}">${escape(project.title)}</a></h2></header>
 <p class="catalog-summary">${escape(project.description)}</p>
 <dl class="catalog-card-facts"><div><dt>Responsável</dt><dd>${escape(project.owner)}</dd></div><div><dt>${project.completed?'Concluído':'Solicitado'} em</dt><dd><time datetime="${escape(project.completed||project.requested)}">${date(project.completed||project.requested)}</time></dd></div></dl>
+${reviewSummary(project)}
 </article></li>`;
+}
+function reviewSummary(project){
+  const count=project.reviewCount||0,average=project.reviewAverage;
+  if(!count)return '<p class="catalog-rating catalog-rating-empty">Sem avaliações</p>';
+  const label=Number(average).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+  return `<a class="catalog-rating" href="${escape(publicProjectPath(project.id))}#avaliacoes"><span class="rating-stars" aria-hidden="true"><span>☆☆☆☆☆</span><span class="rating-fill" style="width:${Math.max(0,Math.min(100,average*20))}%">★★★★★</span></span><span>${label} de 5 · ${count} ${count===1?'avaliação':'avaliações'}</span><span class="review-sr-only"> — Ver comentários de ${escape(project.title)}</span></a>`;
 }
 const options=(values,selected)=>values.map(value=>`<option value="${escape(value)}"${value===selected?' selected':''}>${escape(value)}</option>`).join('');
 function catalogPage(projects,{q='',status='',area=''}={},total=projects.length){

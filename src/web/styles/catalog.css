@@ -100,3 +100,6 @@
 @media(max-width:800px){.reviews-layout{grid-template-columns:1fr}.review-card,.review-form{padding:20px}}
 @media(max-width:800px){.catalog-heading{grid-template-columns:1fr;gap:24px;padding-block:36px}.catalog-heading p{max-inline-size:60ch}.project-layout{grid-template-columns:1fr;gap:32px}.catalog-grid{grid-template-columns:1fr}.catalog-card{padding:22px}}
 @media(max-width:500px){.public-header{padding-block:14px;gap:12px;flex-wrap:wrap}.public-header nav{gap:20px}.public-header .brand{font-size:25px}.catalog-filters>div{flex:1 1 100%}.catalog-filters .catalog-search{min-inline-size:0;flex-basis:100%}.catalog-heading h1 br{display:none}.catalog-heading h1{line-height:1.15}.project-information{padding:22px}}
+.catalog-rating{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;text-decoration:none;color:var(--ink)}
+.catalog-rating:hover{text-decoration:underline}.catalog-rating-empty{color:var(--muted)}
+.rating-stars{position:relative;display:inline-block;color:#755619;font-size:20px;letter-spacing:2px;line-height:1;white-space:nowrap}.rating-fill{position:absolute;inset:0 auto 0 0;overflow:hidden;white-space:nowrap}

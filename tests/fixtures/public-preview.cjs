@@ -7,7 +7,11 @@ const projects=[
   {...base,id:'integracao-sintetica',title:'Integração de novas pessoas',category:'Pessoas',status:'Planejado'},
   {...base,id:'infraestrutura-sintetica',title:'Inventário de infraestrutura e equipamentos',category:'Infraestrutura',status:'Planejado'}
 ];
-const publicRepository={listProjects:async()=>projects,getProject:async id=>projects.find(project=>project.id===id)||null};
+function withIndicators(project){
+  const items=(reviews.get(project.id)||[]).filter(r=>r.visible!==false);
+  return {...project,reviewCount:items.length,reviewAverage:items.length?items.reduce((sum,r)=>sum+r.rating,0)/items.length:null};
+}
+const publicRepository={listProjects:async()=>projects.map(withIndicators),getProject:async id=>{const project=projects.find(p=>p.id===id);return project?withIndicators(project):null;}};
 const reviews=new Map();
 if(process.argv.includes('--seed-reviews')){
   const comments=['Facilitou acompanhar as solicitações da equipe.','A organização por área ficou clara.','Encontrei rapidamente o andamento do pedido.','Gostei da apresentação das informações.','O portal ajudou na rotina de atendimento.','A navegação no celular ficou simples.','O resumo do projeto está bem explicado.','Consegui consultar as entregas com facilidade.','A solução trouxe mais organização.','As informações estão fáceis de localizar.','Gostaria de acompanhar as próximas melhorias.','Boa iniciativa para centralizar os pedidos.'];
@@ -19,7 +23,7 @@ if(process.argv.includes('--seed-reviews')){
 }
 const reviewRepository={
   listReviews:async(id,page=1)=>{
-    const items=reviews.get(id)||[];
+    const items=(reviews.get(id)||[]).filter(r=>r.visible!==false);
     const total=items.length,totalPages=Math.max(1,Math.ceil(total/5));
     page=Math.min(page,totalPages);
     return {items:items.slice((page-1)*5,page*5),total,totalPages,page,nextPage:page<totalPages?page+1:null};
@@ -38,3 +42,5 @@ if(require.main===module){
   const port=Number(process.env.VAULT_PREVIEW_PORT||4186),origin=`http://127.0.0.1:${port}`;
   createServer({origin,publicRepository,reviewRepository}).listen(port,'127.0.0.1',()=>console.log(`Prévia sintética: ${origin}/catalogo`));
 }
+
+module.exports={projects,reviews,publicRepository,reviewRepository};

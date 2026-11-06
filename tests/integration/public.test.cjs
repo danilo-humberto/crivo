@@ -26,7 +26,8 @@ test('Postgres: consultas públicas filtram visibilidade e nunca retornam campos
       [id,index!==1,index===2?'2026-11-06T00:00:00Z':null]);
     const repository=createPublicRepository(client);
     const publicProject=await repository.getProject(ids[0]);
-    assert.deepEqual(Object.keys(publicProject).sort(),['id','title','description','solution','category','status','requested','completed','owner'].sort());
+    assert.equal(publicProject.reviewCount,0);assert.equal(publicProject.reviewAverage,null);
+    assert.deepEqual(Object.keys(publicProject).sort(),['id','title','description','solution','category','status','requested','completed','owner','reviewCount','reviewAverage'].sort());
     assert.equal(await repository.getProject(ids[1]),null);
     assert.equal(await repository.getProject(ids[2]),null);
     assert.deepEqual((await repository.listProjects()).filter(p=>ids.includes(p.id)).map(p=>p.id),[ids[0]]);
@@ -34,6 +35,8 @@ test('Postgres: consultas públicas filtram visibilidade e nunca retornam campos
     for(const id of ids)await client.query(`INSERT INTO vault.reviews(id,project_id,name,cpf,rating,comment)
       VALUES ($1,$2,'Pessoa sintética','01234567890',5,'Comentário sintético')`,[randomUUID(),id]);
     const visible=await reviews.listReviews(ids[0]);
+    assert.equal((await repository.getProject(ids[0])).reviewCount,1);
+    assert.equal((await repository.getProject(ids[0])).reviewAverage,5);
     assert.equal(visible.items.length,1);
     assert.deepEqual(Object.keys(visible.items[0]).sort(),['id','name','rating','comment','createdAt','photoUrl'].sort());
     assert.equal(visible.items[0].photoUrl,'https://example.invalid/01234567890.jpeg');
@@ -41,6 +44,10 @@ test('Postgres: consultas públicas filtram visibilidade e nunca retornam campos
     assert.equal((await reviews.listReviews(ids[2])).items.length,0);
     await client.query('UPDATE vault.reviews SET visible=false WHERE project_id=$1',[ids[0]]);
     assert.equal((await reviews.listReviews(ids[0])).items.length,0);
+    assert.equal((await repository.getProject(ids[0])).reviewCount,0);
+    assert.equal((await repository.getProject(ids[0])).reviewAverage,null);
+    await client.query('UPDATE vault.reviews SET visible=true WHERE project_id=$1',[ids[0]]);
+    assert.equal((await repository.getProject(ids[0])).reviewCount,1);
     await client.query('UPDATE vault.projects SET show_solution_url=true WHERE id=$1',[ids[0]]);
     assert.equal((await repository.getProject(ids[0])).url,'https://example.invalid/hidden');
     await client.query('UPDATE vault.projects SET is_public=false WHERE id=$1',[ids[0]]);

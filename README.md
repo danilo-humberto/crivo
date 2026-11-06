@@ -1,14 +1,15 @@
 # Vault TI
 
-Aplicativo em HTML, CSS e JavaScript com servidor Node, autenticação Neon Managed Better Auth e persistência PostgreSQL no Neon. A gestão inclui as funcionalidades da etapa 5; a etapa 6 acrescenta catálogo e páginas públicas de projetos, e a etapa 7 implementa avaliações públicas com fotos. Indicadores agregados e curadoria ainda não estão disponíveis.
+Aplicativo em HTML, CSS e JavaScript com servidor Node, autenticação Neon Managed Better Auth e persistência PostgreSQL no Neon. A gestão inclui as funcionalidades da etapa 5; a etapa 6 acrescenta catálogo e páginas públicas de projetos, e a etapa 7 implementa avaliações públicas com fotos. A etapa 8 acrescenta indicadores nos cards e curadoria com auditoria, implementados localmente e aprovados para integração à main em 6 de novembro de 2026.
 
-Estado consolidado em 6 de novembro de 2026 por inspeção do código e documentação. Operações remotas citadas são registros anteriores, não uma nova conferência do ambiente remoto.
+Estado consolidado em 6 de novembro de 2026 por inspeção do código, documentação e Git local. Etapas 6 e 7 integradas à main local nos commits `6136b34` e `628e303`; a etapa 8 está implementada na branch `codex/etapa-8-indicadores-curadoria`, com prévia validada pelo usuário e commit/integração à main/push autorizados em 6 de novembro de 2026; integração real ainda pendente. A próxima etapa do plano é a 9, validação e preparação da publicação. As referências Git remotas foram conferidas para esta finalização; registros de banco/produção são históricos. Deploy não foi comprovado.
 
 ## Referências
 
 - [Plano aprovado e acompanhamento](docs/plano-avaliacoes.md): requisitos e pendências por etapa.
 - [Arquitetura](docs/arquitetura-etapa-2.md): escolhas adotadas e validação pendente no Cloudflare.
 - Planos de [persistência](docs/implementacao-etapa-3.md), [autenticação](docs/implementacao-etapa-4.md), [gestão](docs/implementacao-etapa-5.md) e [catálogo público](docs/implementacao-etapa-6.md).
+- [Indicadores e curadoria](docs/implementacao-etapa-8.md): escopo, validações locais, prévia sintética e pendências de integração.
 - [Avaliações e fotos](docs/implementacao-etapa-7.md): implementação, limites de proteção contra abuso e evidências locais.
 - [Histórico](docs/historico-implementacao.md): evidências RED/GREEN, inspeções de navegador, revisões, migrations e recuperação anteriores. Estados intermediários desse histórico não substituem este README.
 
@@ -53,7 +54,7 @@ Use **toast para feedback das ações do usuário**, como confirmação de publi
 
 Toasts devem anunciar a mensagem com `role="status"`, sem mover o foco, oferecer fechamento manual e desaparecer após seis segundos (preservando a notificação enquanto seu botão está focado). O toast de avaliações usa Popover manual com alternativa de posicionamento fixo; remove `enviada` da URL para não repetir a confirmação ao recarregar. Sem JavaScript, a confirmação permanece visível. Este é o padrão para novas alterações; não implica revisão retroativa de todas as telas existentes.
 
-A página individual permite avaliar sem login: nome (até 120 caracteres), CPF válido, nota inteira de 1 a 5 e comentário (até 2.000 caracteres). O formulário usa POST nativo, funciona sem JavaScript e redireciona após a gravação. Uma avaliação por CPF/projeto, sem edição; avaliações ocultas continuam ocupando essa combinação. A inserção reutiliza a transação, o bloqueio do projeto e a restrição UNIQUE existentes. Integração e concorrência em PostgreSQL real permanecem pendentes.
+A página individual permite avaliar sem login: nome (até 120 caracteres), CPF válido, nota inteira de 1 a 5 e comentário (até 2.000 caracteres). O formulário usa POST nativo, funciona sem JavaScript e redireciona após a gravação. Uma avaliação por CPF/projeto, sem edição; avaliações ocultas continuam ocupando essa combinação. A inserção reutiliza a transação, o bloqueio do projeto e a restrição UNIQUE existentes. Unicidade concorrente foi confirmada em ensaio SQL isolado; integração completa e concorrência via aplicação/driver permanecem pendentes.
 
 `GET/HEAD /api/public/projects/~:id/reviews?page=1` retorna até 5 avaliações visíveis, `nextPage` e `formToken`. O POST nessa rota recebe JSON com nome (`name`), CPF (`cpf`), nota numérica (`rating`), comentário (`comment`) e `formToken`. Exige `Origin` correspondente a `APP_ORIGIN`. A listagem seleciona apenas nome, nota, comentário, data e identificador, além do CPF usado exclusivamente para montar `photoUrl`. Não retorna campo CPF separado. Projeto privado, arquivado ou ausente recebe 404; duplicidade recebe 409. Fotos são carregadas diretamente pelo navegador, sem proxy, e o avatar padrão permanece durante carregamento/falha ou sem JavaScript.
 
@@ -65,7 +66,17 @@ A prévia sintética também aceita avaliações em memória, perdidas ao encerr
 
 Para testar a paginação com carga pronta, execute `node tests/fixtures/public-preview.cjs --seed-reviews`. O Portal de atendimento inicia com 12 avaliações fictícias: cinco na primeira página, cinco na segunda e duas na terceira. A carga é somente em memória, sem CPF e sem conexão ao banco; os demais projetos permanecem sem avaliações.
 
-O título Avaliações mostra um badge com o total de avaliações visíveis. A navegação usa “← Voltar”, “Página X de Y” e “Próximo →”, desabilitando as extremidades. A API também retorna `total`, `totalPages` e `page`; contagem e registros usam a mesma consulta SQL e os mesmos filtros públicos. Páginas além do total retornam a última disponível.
+O título Avaliações mostra um badge com o total de avaliações visíveis. A navegação usa “← Voltar”, “Página X de Y” e “Próximo →”, desabilitando as extremidades. A API também retorna `total`, `totalPages` e `page`; contagem e registros usam a mesma consulta SQL e os mesmos filtros públicos. Páginas além do total retornam a última disponível. Comentários e estrelas individuais são exibidos na página. Os cards do catálogo mostram estrelas agregadas, média com uma casa decimal e quantidade de avaliações visíveis, com link para os comentários. Sem avaliações visíveis, exibem “Sem avaliações”. A API pública de projetos inclui `reviewCount` e `reviewAverage` (zero e null quando não há avaliações), calculados na mesma consulta SQL, sem persistir totais.
+
+## Curadoria de avaliações
+
+Na ficha interna de cada projeto, a seção Avaliações lista dez registros por página, incluindo ocultos. Qualquer usuário interno ativo pode Ocultar/Reexibir, sem justificativa; a confirmação aparece em toast dentro da ficha. O controle mantém foco e informa conflitos ou falhas, com ação para atualizar a lista. Projetos privados permitem curadoria; arquivados não são acessíveis pela ficha.
+
+`GET /api/projects/~:id/reviews?page=1` retorna `items`, `total`, `totalPages` e `page`, sem CPF nem URL de foto. `POST /api/projects/~:id/reviews/~:reviewId` recebe os booleanos `visible` e `expectedVisible`; exige sessão interna, origem e CSRF existentes. Ambos os IDs são codificados para URL após o prefixo `~`. Estado desatualizado retorna 409; projeto/avaliação indisponível retorna 404. Repetição do estado atual não grava nova auditoria.
+
+Visibilidade e auditoria são gravadas na mesma transação, com bloqueio da avaliação e do projeto contra arquivamento concorrente. Eventos `review_hidden`/`review_shown` registram autor da sessão e snapshots mínimos do projeto/avaliação, sem CPF ou foto; aparecem na aba Auditoria, filtros, detalhes e exportação. Ocultar preserva o registro e sua unicidade por CPF/projeto. Indicadores e comentários públicos refletem a mudança na próxima consulta, sem atualização automática de abas já abertas.
+
+Prévia sem banco/Auth real: `node tests/fixtures/curation-preview.cjs --seed-reviews` e http://127.0.0.1:4188/management. Usa apenas dados sintéticos em memória e usuário interno simulado; `VAULT_PREVIEW_PORT` permite outra porta. Abra a ficha do Portal de atendimento, oculte/reexiba uma avaliação, confira Auditoria e recarregue o catálogo. A prévia cobre apenas leitura e curadoria, não cadastro/edição/exclusão de projetos; os dados desaparecem ao encerrar.
 
 ## Autenticação, convites e fotos
 
@@ -119,6 +130,8 @@ Na inspeção documental de 6 de novembro de 2026, a base de 63 testes passou. N
 
 Na entrega final da etapa 7, a suíte local passou com 87/87 testes, além de build e diff. Fluxo de envio/correção e avatar conferidos no Chrome em desktop e celular; revisão independente final sem bloqueadores de código. Ensaio SQL em PostgreSQL 18 isolado confirmou paginação, contagem, visibilidade e unicidade concorrente. Leitura autorizada em produção confirmou schema, constraints e execução da consulta; não havia projeto público ativo. A suíte completa via driver e escritas de aplicação continuam pendentes. Evidências e limites no [plano da etapa 7](docs/implementacao-etapa-7.md).
 
+Na etapa 8, `npm test` passou com 97/97 testes; build, sintaxe e diff aprovados. Chrome com dados sintéticos confirmou ocultação/reexibição, indicadores, comentários, paginação e auditoria, em desktop e viewport de 390 px; revisão independente sem bloqueadores. `tests/integration/curation.test.cjs` prepara testes reais de indicadores, auditoria, rollback, duplicidade e concorrência, mas não foi executado. Detalhes no [plano da etapa 8](docs/implementacao-etapa-8.md).
+
 Comandos: `npm test`, `npm run build` e `npm run test:integration`. Integração exige desenvolvimento descartável, migrations 001/002, `VAULT_INTEGRATION_APPROVED=yes`, identidade esperada e autorização específica. Não executar contra produção. A suíte pode deixar registros sintéticos para inspeção.
 
 Pendências: integração completa de persistência/importação e consultas públicas com PostgreSQL real, arquivamento concorrente e validação visual completa desse fluxo; logout/novo login/recuperação reais; fluxo completo de convite; Workers, e-mail de produção, limites operacionais e retenção. `tests/integration/public.test.cjs` prepara a validação SQL pública com dados sintéticos e rollback, ainda não executada. Revisões anteriores de autenticação e gestão estão no histórico; a revisão independente da etapa 6 está registrada no seu plano.
@@ -131,4 +144,4 @@ Os registros anteriores documentam backups antes das migrations e restauração 
 
 Restaurar primeiro em destino separado e autorizado com pg_restore 18; conferir integridade, inventário e permissões gerenciadas do Neon. O ensaio da etapa 4 usou `--no-owner --no-acl`. Não substituir produção automaticamente. Retenção e procedimento final de operação/publicação continuam pendentes.
 
-Em desenvolvimento isolado: login → convite → segunda conta/verificação/aceite → criação privada → responsável → visibilidade → auditoria → exclusão sem avaliações e arquivamento com avaliações sintéticas → logout e recusa da sessão anterior → recuperação. Conferir conflitos, fotos/fallback, teclado e celular. Importar duas vezes, conferir contagens/snapshots e rollback, preservando localStorage. O roteiro público depende das etapas 6 a 8.
+Em desenvolvimento isolado: login → convite → segunda conta/verificação/aceite → criação privada → responsável → visibilidade → auditoria → exclusão sem avaliações e arquivamento com avaliações sintéticas → logout e recusa da sessão anterior → recuperação. Conferir conflitos, fotos/fallback, teclado e celular. Importar duas vezes, conferir contagens/snapshots e rollback, preservando localStorage. No fluxo público: catálogo → projeto → avaliação sintética → ocultar/reexibir na gestão → recarregar comentários/indicadores e conferir auditoria. As etapas 6 a 8 estão implementadas; a integração completa permanece pendente.

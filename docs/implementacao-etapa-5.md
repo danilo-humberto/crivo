@@ -9,7 +9,7 @@ Implementada em 4 de novembro de 2026, conforme o [plano aprovado](plano-avaliac
 - Preservar o responsável antigo enquanto não houver seleção explícita; não inferir vínculos por nomes. Responsáveis já vinculados e posteriormente inativos podem ser mantidos, mas não escolhidos para outra atribuição.
 - Remover projetos sem avaliações; arquivar os que possuem avaliações, inclusive ocultas, preservando alternativas, avaliações e histórico. A decisão ocorre na transação, sob bloqueio do projeto.
 - Registrar autor e snapshots das alterações, inclusive visibilidade, vínculo de responsável e arquivamento.
-- Preservar o modo local legado. Catálogo público e curadoria pertencem às próximas etapas.
+- Preservar o modo local legado. Catálogo público foi implementado posteriormente na etapa 6; curadoria foi implementada localmente na [etapa 8](implementacao-etapa-8.md), com integração à main autorizada em 6 de novembro de 2026.
 
 Reutilizar o schema evita migration e duplicação de dados. Preservar o nome legado permite editar projetos antigos antes do mapeamento, ao custo de manter a indicação de vínculo pendente. Exigir mapeamento de todo o acervo antes de qualquer edição bloquearia correções sem benefício para esta etapa.
 

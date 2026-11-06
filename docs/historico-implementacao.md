@@ -3,6 +3,8 @@
 Registro preservado da documentação acumulada até 4 de novembro de 2026. **Não é um guia do estado atual.** As seções representam momentos sucessivos: situações como ausência de autenticação, migrations não aplicadas e falta de Git foram superadas por registros posteriores. Contagens e comandos de testes são históricos.
 
 Consulte o [README](../README.md) para funcionamento atual e o [plano](plano-avaliacoes.md) para acompanhamento. Autorizações históricas não autorizam novas operações. Backups e recibos privados não foram abertos nesta consolidação.
+
+As evidências posteriores de 6 de novembro estão nos planos das [etapas 6](implementacao-etapa-6.md) e [7](implementacao-etapa-7.md). A revisão documental nessa data confirmou ambos os commits na main local, sem reexecutar testes ou conferir remoto/produção. A implementação local posterior de indicadores e curadoria está registrada na [etapa 8](implementacao-etapa-8.md), com integração à main autorizada em 6 de novembro de 2026. A próxima etapa do plano é a 9; as pendências de validação anteriores permanecem no acompanhamento consolidado.
 # Registro anterior do README
 
 Aplicativo em HTML, CSS e JavaScript, com servidor Node. A etapa 4 preparou autenticação Neon e gestão pela API; ativação e validação integrada ainda dependem de desenvolvimento isolado. O modo legado com localStorage continua disponível explicitamente. Os seis exemplos iniciais, concorrentes e custos são fictícios. As seções históricas abaixo descrevem as etapas anteriores; a configuração atual está na seção da etapa 4.

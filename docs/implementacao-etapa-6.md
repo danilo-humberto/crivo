@@ -1,6 +1,6 @@
 # Etapa 6 — Catálogo e páginas públicas
 
-Implementação solicitada em 6 de novembro de 2026, conforme o [plano aprovado](plano-avaliacoes.md). Preservar a consolidação documental preexistente na árvore de trabalho.
+Implementação solicitada em 6 de novembro de 2026, conforme o [plano aprovado](plano-avaliacoes.md). Estado atual: implementada e integrada à main local no commit `6136b34`, conferido no Git. A autorização posterior de integração inclui esta etapa e consta na [etapa 7](implementacao-etapa-7.md). Suíte de integração via driver e publicação continuam pendentes; push remoto não foi revalidado nesta revisão documental.
 
 ## Escopo e abordagem
 
@@ -17,7 +17,7 @@ TDD para projeção pública, filtro de visibilidade/arquivamento, link oculto, 
 
 ## Limites
 
-Sem migrations, dependências novas, acesso remoto ou mudança na política de autenticação interna. Avaliações, fotos de avaliadores, indicadores e curadoria pertencem às etapas 7/8. Integração com PostgreSQL real continua dependente de ambiente isolado autorizado; não usar produção. Sem commit, push ou deploy nesta execução.
+O escopo inicial não incluiu migrations, dependências novas, acesso remoto ou mudança na política de autenticação interna, nem commit, push ou deploy. Avaliações e fotos foram implementadas posteriormente na etapa 7; indicadores nos cards e curadoria foram implementados localmente na [etapa 8](implementacao-etapa-8.md), aprovados para integração à main em 6 de novembro de 2026. A suíte de integração com PostgreSQL via driver continua dependente de ambiente isolado autorizado; não usar produção. Autorizações e integração posteriores estão distinguidas dos registros iniciais abaixo.
 
 O prefixo fixo ~ nos links impede que IDs legados como ponto e ponto duplo sejam normalizados pelo navegador. Gestão e catálogo usam o mesmo helper; a API decodifica o sufixo uma única vez.
 

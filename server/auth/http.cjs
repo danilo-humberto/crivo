@@ -70,6 +70,21 @@ function createApi({auth,authRepository,repository,origin}){
       return json(res,200,await authRepository.accept(identity.id,await readBody(req)));
     }
     const user=await authenticate(req,res);
+    const reviews=path.match(/^\/api\/projects\/~([^/]+)\/reviews(?:\/~([^/]+))?$/);
+    if(reviews){
+      let projectId,reviewId;
+      try{projectId=decodeURIComponent(reviews[1]);reviewId=reviews[2]&&decodeURIComponent(reviews[2]);}catch{throw fail(404,'Rota indisponível.');}
+      if(!reviewId&&req.method==='GET'){
+        const value=new URL(req.url,'http://localhost').searchParams.get('page')??'1';
+        if(!/^[1-9][0-9]{0,4}$/.test(value)||Number(value)>10000)throw fail(400,'Página inválida.');
+        return json(res,200,await repository.listProjectReviews(projectId,Number(value)));
+      }
+      if(reviewId&&req.method==='POST'){
+        const body=await readBody(req);
+        return json(res,200,await repository.setReviewVisibility(projectId,reviewId,body.visible,{expectedVisible:body.expectedVisible,actorId:user.id}));
+      }
+      throw fail(405,'Método não permitido.');
+    }
     if(path==='/api/me'&&req.method==='GET')return json(res,200,user);
     if(path==='/api/users'&&req.method==='GET')return json(res,200,await authRepository.listUsers());
     if(path==='/api/invitations'){

@@ -81,6 +81,11 @@ function showDetail(id){const p=projects.find(p=>p.id===id);if(!p)return;const d
       if(result){$('#detail-dialog').close();toast(result.removal?.action==='archived'?'Projeto arquivado. Avaliações e histórico preservados.':'Projeto excluído.');}
     }finally{button.disabled=false;}
   };
+  if(VaultStorage.remote){
+    const section=document.createElement('section');section.id='curation';section.className='curation';
+    $('#detail-content').append(section);
+    void VaultCuration.mount(section,{storage:VaultStorage,projectId:id,onChanged:async()=>{adopt(await VaultStorage.read());render();renderAudit();}});
+  }
   $('#detail-dialog').showModal();
 }
 function alternativeRow(a={name:'',cost:0,notes:''}){const row=document.createElement('div');row.className='alternative';row.innerHTML=`<label>Nome da alternativa *<input data-field="name" required maxlength="120" value="${esc(a.name)}"></label><label>R$ / mês *<input data-field="cost" type="number" min="0" step="0.01" required value="${esc(a.cost)}"></label><button type="button" class="icon-button" aria-label="Remover alternativa">×</button><label class="full">Recursos, vantagens e limitações<textarea data-field="notes" maxlength="2000">${esc(a.notes)}</textarea></label>`;row.querySelector('button').onclick=()=>row.remove();$('#alternatives').append(row);}
@@ -175,7 +180,7 @@ document.addEventListener('click',e=>{const close=e.target.closest('[data-close]
 for(const id of ['search','status-filter','category-filter','sort'])$('#'+id).addEventListener(id==='search'?'input':'change',render);
 window.addEventListener('storage',e=>{if(!VaultStorage.remote&&(e.key===KEY||e.key===null)){try{adopt(VaultStorage.read(localStorage));render();renderAudit();toast('Projetos e histórico atualizados por outra aba.');}catch{storageBlocked=true;toast('Os dados foram removidos ou alterados fora desta aba. Recarregue antes de continuar.');}}});
 const fieldLabels={title:'Nome do projeto',description:'O que é o sistema',solution:'Solução',owner:'Responsável / equipe',category:'Área',status:'Status',requested:'Data da solicitação',completed:'Data da conclusão',cost:'Custo mensal',url:'Link',alternatives:'Alternativas de mercado',owner_id:'Vínculo do responsável',is_public:'Projeto público',show_solution_url:'Link público',archived_at:'Arquivado em'};
-const actionLabels={baseline:'Registro inicial',created:'Criação',updated:'Alteração',deleted:'Exclusão',archived:'Arquivamento'};
+const actionLabels={baseline:'Registro inicial',created:'Criação',updated:'Alteração',deleted:'Exclusão',archived:'Arquivamento',review_hidden:'Avaliação ocultada',review_shown:'Avaliação reexibida'};
 const timestamp=value=>new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'medium'}).format(new Date(value));
 function auditValue(project,field){
   if(!project)return 'Não existia';
@@ -197,7 +202,7 @@ function renderAudit(){
   $('#audit-more').hidden=entries.length<=auditLimit;
   $('#audit-list').innerHTML=entries.length?entries.slice(0,auditLimit).map(e=>{
     const project=e.after||e.before,changed=VaultAudit.changedFields(e.before,e.after);
-    const description=e.action==='updated'?changed.map(f=>fieldLabels[f]).join(', '):e.action==='archived'?'Projeto arquivado; avaliações e histórico preservados.':e.action==='baseline'?'Cópia do projeto ao iniciar o histórico.':e.action==='deleted'?'Versão completa preservada antes da exclusão.':'Primeira versão do projeto.';
+    const description=['review_hidden','review_shown'].includes(e.action)?`Avaliação de ${project.review.name}: ${project.review.visible?'reexibida':'ocultada'}.`:e.action==='updated'?changed.map(f=>fieldLabels[f]).join(', '):e.action==='archived'?'Projeto arquivado; avaliações e histórico preservados.':e.action==='baseline'?'Cópia do projeto ao iniciar o histórico.':e.action==='deleted'?'Versão completa preservada antes da exclusão.':'Primeira versão do projeto.';
     return `<li class="audit-entry"><div class="audit-event"><span class="audit-action ${e.action}">${actionLabels[e.action]}${e.demo ? ' · Exemplo' : ''}</span><time datetime="${esc(e.at)}">${timestamp(e.at)}</time></div><div class="audit-description"><h2>${esc(project.title)}</h2><p>${esc(description)}</p><small>Responsável pelo projeto: ${esc(project.owner)} · Autor da ação: ${esc(e.actor)}</small></div><button type="button" class="detail-button" data-audit="${esc(e.id)}" aria-label="Ver registro de ${esc(project.title)} em ${timestamp(e.at)}">Ver registro</button></li>`;
   }).join(''):'<li class="empty"><h2>Nenhum registro encontrado</h2><p>Ajuste a busca ou os filtros. Novas alterações serão registradas automaticamente.</p></li>';
 }
@@ -205,6 +210,11 @@ function downloadJSON(data,filename){const url=URL.createObjectURL(new Blob([JSO
 function showAudit(id){
   const entry=auditEntries.find(e=>e.id===id);if(!entry)return;
   const project=entry.after||entry.before,changed=VaultAudit.changedFields(entry.before,entry.after);
+  if(['review_hidden','review_shown'].includes(entry.action)){
+    const r=project.review;
+    $('#audit-content').innerHTML=`<div class="dialog-heading"><div><p class="eyebrow">${actionLabels[entry.action]} em ${timestamp(entry.at)}</p><h2 id="audit-title">${esc(project.title)}</h2></div><button type="button" class="icon-button" data-close aria-label="Fechar">×</button></div><p>Autor da ação: ${esc(entry.actor)}</p><h3>Avaliação de ${esc(r.name)}</h3><p>${esc(r.rating)} de 5 estrelas</p><p class="detail-description">${esc(r.comment)}</p><dl class="detail-facts"><div><dt>Antes</dt><dd>${entry.before.review.visible?'Visível':'Oculta'}</dd></div><div><dt>Depois</dt><dd>${r.visible?'Visível':'Oculta'}</dd></div></dl><div class="dialog-actions"><button type="button" class="primary" data-close>Fechar</button></div>`;
+    $('#audit-dialog').showModal();return;
+  }
   $('#audit-content').innerHTML=`<div class="dialog-heading"><div><p class="eyebrow">${actionLabels[entry.action]} em ${timestamp(entry.at)}</p><h2 id="audit-title">${esc(project.title)}</h2></div><button type="button" class="icon-button" data-close aria-label="Fechar">×</button></div>${entry.demo?'<p class="audit-note">Exemplo fictício para demonstração. Nenhum projeto do seu acervo foi alterado ou excluído por este registro.</p>':''}<p class="audit-note">Autor da ação: ${esc(entry.actor)}. Responsável e autor da alteração são informações distintas.</p>${entry.action==='baseline'?'<p class="detail-description">Registro inicial: esta cópia marca o início do histórico, não a data de criação do projeto.</p>':''}<div class="table-wrap audit-comparison" tabindex="0" role="region" aria-label="Comparação das versões"><table><caption>${entry.action==='updated'?'Comparação completa: campos alterados destacados':entry.action==='deleted'?'Cópia preservada antes da exclusão':'Cópia completa do projeto'}</caption><thead><tr><th scope="col">Campo</th>${entry.before?'<th scope="col">Antes</th>':''}${entry.after?'<th scope="col">'+(entry.before?'Depois':'Dados registrados')+'</th>':''}</tr></thead><tbody>${VaultAudit.fields.map(field=>`<tr class="${entry.action==='updated'&&changed.includes(field)?'changed-field':''}"><th scope="row">${fieldLabels[field]}${entry.action==='updated'&&changed.includes(field)?'<small>Alterado</small>':''}</th>${entry.before?`<td>${esc(auditValue(entry.before,field))}</td>`:''}${entry.after?`<td>${esc(auditValue(entry.after,field))}</td>`:''}</tr>`).join('')}</tbody></table></div><div class="dialog-actions">${entry.before?'<button type="button" class="secondary" id="download-before">Baixar versão anterior</button>':''}${entry.after?'<button type="button" class="secondary" id="download-after">Baixar versão registrada</button>':''}<button type="button" class="primary" data-close>Fechar</button></div>`;
   if(entry.before)$('#download-before').onclick=()=>downloadJSON(entry.before,'vault-ti-versao-anterior.json');
   if(entry.after)$('#download-after').onclick=()=>downloadJSON(entry.after,'vault-ti-versao-registrada.json');

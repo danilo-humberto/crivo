@@ -14,6 +14,7 @@ const files = new Map(Object.entries({
   '/catalog.css':'src/web/styles/catalog.css',
   '/reviews.js':'src/web/scripts/reviews.js',
   '/review-toast.js':'src/web/scripts/review-toast.js',
+  '/curation.js':'src/web/scripts/curation.js',
   '/profile.js':'src/web/scripts/profile.js', '/profile.css':'src/web/styles/profile.css',
   '/auth':'src/web/pages/auth.html', '/auth.css':'src/web/styles/auth.css',
   '/auth.js':'dist/auth.js', '/remote-storage.js':'src/infrastructure/remote-storage.js'

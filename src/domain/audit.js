@@ -15,8 +15,17 @@
     validateProjects(state.projects);
     const ids=new Set();
     for(const e of state.audit){
-      if(!e || typeof e.id!=='string' || ids.has(e.id) || typeof e.projectId!=='string' || typeof e.actor!=='string' || typeof e.at!=='string' || !Number.isFinite(Date.parse(e.at)) || !['baseline','created','updated','deleted','archived'].includes(e.action))throw Error('Registro de auditoria inválido.');
+      if(!e || typeof e.id!=='string' || ids.has(e.id) || typeof e.projectId!=='string' || typeof e.actor!=='string' || typeof e.at!=='string' || !Number.isFinite(Date.parse(e.at)) || !['baseline','created','updated','deleted','archived','review_hidden','review_shown'].includes(e.action))throw Error('Registro de auditoria inválido.');
       ids.add(e.id);
+      if(['review_hidden','review_shown'].includes(e.action)){
+        for(const snapshot of [e.before,e.after]){
+          const review=snapshot?.review;
+          if(!snapshot||snapshot.id!==e.projectId||typeof snapshot.title!=='string'||typeof snapshot.owner!=='string'||!review||typeof review.id!=='string'||!review.id||typeof review.name!=='string'||typeof review.comment!=='string'||!Number.isInteger(review.rating)||review.rating<1||review.rating>5||typeof review.visible!=='boolean'||Object.keys(snapshot).some(k=>!['id','title','owner','review'].includes(k))||Object.keys(review).some(k=>!['id','name','rating','comment','visible'].includes(k)))throw Error('Snapshot de curadoria inválido.');
+        }
+        const visible=e.action==='review_shown';
+        if(e.before.review.visible!==!visible||e.after.review.visible!==visible||canonical({...e.before,review:{...e.before.review,visible}})!==canonical(e.after))throw Error('Transição de curadoria inválida.');
+        continue;
+      }
       if(e.before!==null)core.validateProject(e.before);
       if(e.after!==null)core.validateProject(e.after);
       if((e.before && e.before.id!==e.projectId)||(e.after && e.after.id!==e.projectId))throw Error('Projeto do histórico inválido.');

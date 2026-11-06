@@ -10,7 +10,11 @@
     const data=await response.json();if(!response.ok)throw Error(data.error||'Não foi possível salvar.');return data;
   }
   async function read(){const state=await request('/api/projects');return {raw:JSON.stringify(state),state};}
-  root.VaultStorage={remote:true,KEY:null,initialize:read,read,listUsers:()=>request('/api/users'),async commit(_storage,raw,next){
+  const reviewsPath=id=>`/api/projects/~${encodeURIComponent(id)}/reviews`;
+  root.VaultStorage={remote:true,KEY:null,initialize:read,read,listUsers:()=>request('/api/users'),
+    listProjectReviews:(id,page=1)=>request(`${reviewsPath(id)}?page=${page}`),
+    setReviewVisibility:(id,reviewId,visible,expectedVisible)=>request(`${reviewsPath(id)}/~${encodeURIComponent(reviewId)}`,'POST',{visible,expectedVisible}),
+    async commit(_storage,raw,next){
     const previous=JSON.parse(raw).projects;
     const changes=next.filter(p=>!previous.some(old=>old.id===p.id)||root.VaultAudit.changedFields(previous.find(old=>old.id===p.id),p).length);
     const removed=previous.filter(p=>!next.some(item=>item.id===p.id));
