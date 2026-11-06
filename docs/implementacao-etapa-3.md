@@ -1,8 +1,8 @@
 # Etapa 3 — banco, persistência e importação
 
-Preparação iniciada em 4 de novembro de 2026. Esta proposta não é uma migration aplicada nem uma implementação concluída. Complementa o plano aprovado e depende das autorizações específicas descritas abaixo.
+Implementação preparada em 4 de novembro de 2026. Schema, repositório e importador implementados; migration 001 aplicada conforme registro operacional. Integração completa e migração do acervo pendentes. O desenho abaixo registra o escopo da etapa, não autoriza novas operações.
 
-Atualização: o usuário autorizou inicializar Git sem commit, implementar o modelo, preparar migrations locais e instalar o driver Neon. Posteriormente autorizou a aplicação em `production` e confirmou CPF obrigatório também para usuários internos. A migration foi aplicada após validação isolada e recuperação verificada do backup; importação e teste completo do repositório continuam pendentes. Evidências e comandos estão na seção da etapa 3 do README.
+Atualização: o usuário autorizou inicializar Git sem commit, implementar o modelo, preparar migrations locais e instalar o driver Neon. Posteriormente autorizou a aplicação em `production` e confirmou CPF obrigatório também para usuários internos. A migration foi aplicada após validação isolada e recuperação verificada do backup; importação e teste completo do repositório continuam pendentes. Comandos atuais estão no [README](../README.md); evidências anteriores no [histórico](historico-implementacao.md).
 
 ### Destino confirmado posteriormente
 
@@ -10,46 +10,41 @@ O usuário autorizou usar a branch `production` do projeto `vault` e salvar suas
 
 Inspeção prévia somente leitura confirmou banco `neondb`, papel `neondb_owner` com permissão para criar schema, ausência inicial do schema `vault` e nove tabelas de `neon_auth`. O destino não foi tratado como banco vazio ou descartável.
 
-Após nova autorização explícita do usuário para o agente aplicar a migration em produção, foram atendidos os pré-requisitos: SQL validado em Postgres 18 isolado com dados sintéticos e backup prévio restaurado em ambiente local sem rede. Aplicação concluída em uma transação; leitura pós-commit confirmou versão 1 e oito tabelas em `vault`, incluindo CPF obrigatório em usuários internos. As nove tabelas de autenticação permanecem existentes. Não executar `npm run test:integration` nessa branch. Backup, hash, roteiro de recuperação e limitações estão no README.
+Após nova autorização explícita do usuário para o agente aplicar a migration em produção, foram atendidos os pré-requisitos: SQL validado em Postgres 18 isolado com dados sintéticos e backup prévio restaurado em ambiente local sem rede. Aplicação concluída em uma transação; leitura pós-commit confirmou versão 1 e oito tabelas em `vault`, incluindo CPF obrigatório em usuários internos. As nove tabelas de autenticação permanecem existentes. Não executar `npm run test:integration` nessa branch. Backup, hash e evidências estão no histórico; o roteiro atual de recuperação e limites estão no README.
 
-## Evidências e limites
+## Evidências históricas
 
-- A aplicação usa localStorage v2, com projetos e auditoria gravados juntos. O servidor atual apenas entrega arquivos estáticos.
-- A exportação existente contém `version`, `exportedAt`, `projects` e `audit`. Snapshots incluem alternativas e registros de projetos já excluídos.
-- Existem seis projetos iniciais fictícios e dois eventos demonstrativos com `demo: true`. Os projetos iniciais não possuem marcação suficiente para excluir automaticamente todos os exemplos com segurança.
-- A pasta não possui repositório Git. O plano exige definir versionamento antes de alterar a implementação.
-- Base de regressão: `node --test tests/*.test.cjs`, 16 aprovados, zero falhas em 4 de novembro de 2026.
-- Driver Neon, runtime Workers e instalação de dependências continuam propostos na etapa 2. Não houve acesso a banco ou leitura de credenciais nesta preparação.
+A base anterior tinha 16 testes e usava localStorage. A evolução do versionamento, instalação e aplicação do banco está no [histórico](historico-implementacao.md). O estado atual é descrito no README; o acervo legado contém exemplos fictícios que exigem seleção explícita antes da importação.
 
-## Entrega proposta
+## Escopo implementado
 
-Preparar migrations SQL revisáveis, repositório de persistência no servidor e importador administrativo. Manter a interface atual no armazenamento local até que a etapa 4 permita proteger as operações internas. Não expor uma API de escrita sem autenticação para antecipar a troca de persistência da interface.
+Preparar migrations SQL revisáveis, repositório de persistência no servidor e importador administrativo. Na etapa 3, a interface foi mantida no armazenamento local; a etapa 4 posteriormente integrou a API protegida. Não expor uma API de escrita sem autenticação para antecipar a troca de persistência da interface.
 
-Essa separação permite validar persistência no servidor na etapa 3; o fluxo completo da interface com banco fica dependente da autenticação. A conclusão da etapa 3 exige testes reais em Postgres isolado, não apenas mocks ou inspeção de SQL.
+Essa separação permitiu preparar a persistência antes da API autenticada, integrada na etapa 4. A conclusão da etapa 3 exige testes reais em Postgres isolado, não apenas mocks ou inspeção de SQL.
 
-## Modelo proposto para revisão
+## Modelo adotado
 
 | Entidade | Dados e integridade |
 | --- | --- |
 | Usuários internos | Identificador local, identidade externa única, nome, CPF obrigatório textual normalizado e estado de acesso; sem senhas, sessões ou FK para tabelas gerenciadas do provedor. Concessão de acesso fica na etapa 4. |
-| Projetos | Campos atuais, responsável opcional por ID e nome legado preservado, versão para concorrência, visibilidade inicialmente privada, link público inicialmente desabilitado e data de arquivamento. Preservar IDs legados textuais. |
+| Projetos | Campos atuais, responsável opcional por ID no schema para preservar importações legadas; novos projetos da gestão exigem usuário ativo desde a etapa 5, com nome legado preservado, versão para concorrência, visibilidade inicialmente privada, link público inicialmente desabilitado e data de arquivamento. Preservar IDs legados textuais. |
 | Alternativas | Projeto, posição, nome, custo e observações; preservar ordem e valores existentes. Custos não negativos com representação decimal. |
 | Avaliações | Projeto, nome, CPF textual normalizado, nota inteira de 1 a 5, comentário, visibilidade e data. Obrigatoriedade e `UNIQUE(project_id, cpf)` também no banco, inclusive para avaliações ocultas. |
 | Auditoria | ID, referência histórica do projeto, ação, data, ator opcional por ID, texto legado e snapshots JSON completos. Não exigir existência do projeto atual para preservar exclusões antigas. |
 | Importações | Identificador da origem, digest do conteúdo normalizado e resultado para reconhecer repetição; preservar vínculo entre IDs de origem e registros importados. |
 
-Nenhuma cascata deve apagar avaliações ou histórico. Novas alterações de projeto, alternativas e auditoria devem participar da mesma transação. Atualizações exigem a versão esperada; conflito ou falha reverte toda a operação. Não inferir autoria antiga pelo responsável do projeto. Convites, sessões e provisionamento ficam para a etapa 4.
+Nenhuma cascata deve apagar avaliações ou histórico. Novas alterações de projeto, alternativas e auditoria devem participar da mesma transação. Atualizações exigem a versão esperada; conflito ou falha reverte toda a operação. Não inferir autoria antiga pelo responsável do projeto. Convites, sessões e provisionamento foram implementados na etapa 4.
 
-## Importação proposta
+## Contrato de importação
 
 1. Ler arquivo exportado explicitamente fornecido; validar formato, projetos, eventos e snapshots antes de escrever. Não acessar automaticamente dados do navegador.
-2. Produzir prévia com contagens, IDs conflitantes, responsáveis sem mapeamento e exemplos conhecidos. Não imprimir conteúdo pessoal ou snapshots nos logs.
+2. Produzir prévia com contagens, exclusões e quantidade de responsáveis sem vínculo. A CLI não lista dados pessoais nem consulta conflitos de IDs no banco durante a prévia; conflitos são detectados na aplicação. Não imprimir conteúdo pessoal ou snapshots nos logs.
 3. Exigir seleção explícita dos exemplos a manter ou excluir. Não identificar exemplos apenas pelo título, nem descartar histórico silenciosamente.
 4. Preservar o nome legado e deixar a referência ao usuário vazia até existir mapeamento confirmado. Não criar contas a partir de nomes.
 5. Importar atomicamente; repetição do mesmo conteúdo e origem não cria novas linhas. Reuso de IDs com conteúdo diferente deve gerar conflito, não sobrescrever registros. Repetições simultâneas precisam ser serializadas por restrições/transações no banco.
 6. Reconciliar projetos, alternativas, eventos e snapshots com a prévia. Preservar o arquivo original e o localStorage; não limpar a origem após importar.
 
-## Sequência e critérios de aceite
+## Sequência original e critérios de aceite
 
 1. Definir Git, aprovar o desenho e a dependência de acesso ao banco; preparar migrations e código local com TDD.
 2. Testar validação de importação, dados inválidos, repetição, conflito de IDs, preservação de snapshots e responsáveis antigos com dados sintéticos.
@@ -62,6 +57,6 @@ Validação manual futura: em banco isolado vazio, importar um arquivo sintétic
 
 ## Autorizações e decisões necessárias
 
-Solicitar autorização para inicializar Git sem commit, adotar o modelo acima, preparar migrations e instalar `@neondatabase/serverless` com versão fixa e lockfile. A implementação local não inclui aplicação de migrations remotas, criação de recursos, autenticação, deploy, commit ou push.
+Git, modelo, migrations locais e driver foram autorizados e implementados. A aplicação remota da migration 001 recebeu autorização própria e foi concluída. A API autenticada foi integrada na etapa 4 e a gestão evoluiu na etapa 5. Novas operações sensíveis continuam exigindo autorização específica.
 
 Antes de aplicar qualquer migration, identificar o ambiente de desenvolvimento e confirmar permissões efetivas e autorização específica. Antes de importar dados reais, confirmar origem, mapeamento e tratamento dos exemplos. Retenção e recuperação de dados pessoais continuam pendentes para publicação; os testes iniciais usam somente dados sintéticos.

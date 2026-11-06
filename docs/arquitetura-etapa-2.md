@@ -1,6 +1,6 @@
 # Arquitetura proposta para o Vault
 
-Pesquisa realizada em 4 de novembro de 2026. Status: opção A e integração direta de fotos aprovadas; demais itens propostos e validações ainda pendentes. Complementa o [plano aprovado](plano-avaliacoes.md), sem substituir seus requisitos. A compatibilidade foi investigada documentalmente; ainda não houve prova de execução no runtime Cloudflare, criação de recursos ou acesso a bancos. Na etapa 3, a instalação do driver Neon foi autorizada e executada, conforme atualização abaixo.
+Consolidada em 6 de novembro de 2026. Neon Managed Better Auth, autorização interna por convite e fotos diretas foram adotados; a implementação atual roda em Node. Migrations 001/002, primeiro usuário e testes controlados constam no [histórico](historico-implementacao.md). Workers ainda não foi validado. O [README](../README.md) descreve os comandos atuais e o [plano](plano-avaliacoes.md) concentra o acompanhamento das etapas.
 
 ## Composição proposta
 
@@ -27,16 +27,18 @@ O Neon gerencia senhas e sessões; o Worker não executará hash de senhas por c
 
 ## Convites e recuperação
 
-- Primeiro usuário: provisionamento controlado por comando administrativo, após definição explícita do e-mail e do ambiente. Sem endpoint público de bootstrap nem senha padrão.
+- Primeiro usuário já provisionado conforme registro operacional. Em novos ambientes: provisionamento controlado por comando administrativo, após definição explícita do e-mail e do ambiente. Sem endpoint público de bootstrap nem senha padrão.
 - Convite por link aprovado: o usuário gera um link na área interna, copia e compartilha pelo canal de sua escolha. O Vault não envia e-mail de convite. Quem recebe abre o link, cria uma conta ou entra com e-mail e senha e aceita o convite para obter acesso interno.
-- Validade aprovada: 48 horas a partir da geração, verificada no servidor no aceite. Proposta técnica complementar: token aleatório, de uso único, revogável e somente seu hash no banco. Consumir o convite e conceder acesso na mesma transação, após autenticação; abrir o link por GET não deve consumi-lo. Eventual vínculo a um e-mail específico ainda precisa de definição; não exigir e-mail do destinatário apenas para gerar o link sem decisão do usuário.
+- Validade aprovada: 48 horas a partir da geração, verificada no servidor no aceite. Implementado na etapa 4: token aleatório, de uso único, revogável e somente seu hash no banco. Consumir o convite e conceder acesso na mesma transação, após autenticação; abrir o link por GET não deve consumi-lo. Decisão adotada: sem vínculo a e-mail; somente o emissor revoga seus convites não consumidos.
 - Todos os usuários internos ativos podem gerar convites, conforme decisão aprovada. A API deve verificar sessão e autorização interna antes da geração. A permissão para revogar acessos de usuários permanece a definir; não inferi-la da permissão de convidar.
 - Recuperação de senha pelas APIs do provedor/biblioteca, com respostas que não revelem a existência de contas e URLs de retorno previamente permitidas.
 - O Neon recomenda SMTP próprio para produção. Resend é candidato, não serviço já contratado. É necessário confirmar domínio de envio e acesso ao DNS ou SMTP corporativo disponível. [Checklist Neon](https://neon.com/docs/auth/production-checklist), [e-mail Better Auth](https://better-auth.com/docs/concepts/email).
 
-## Banco e contratos
+## Banco e contratos aprovados
 
-Modelo inicial: usuários internos vinculados à identidade de autenticação, projetos, alternativas, avaliações, auditoria e convites, com Neon Managed Better Auth. Não definir chaves estrangeiras para tabelas gerenciadas de autenticação antes de confirmar seus contratos.
+Consultas públicas de projetos foram implementadas na etapa 6 em Node, com validação local. Avaliações públicas e curadoria continuam como requisitos das etapas 7/8, ainda não implementados. O schema e a gestão interna já existem.
+
+Modelo adotado: usuários internos vinculados à identidade de autenticação, projetos, alternativas, avaliações, auditoria e convites, com Neon Managed Better Auth. Não definir chaves estrangeiras para tabelas gerenciadas de autenticação antes de confirmar seus contratos.
 
 - Projetos: responsável por identificador, status, is_public, show_solution_url, archived_at e versão para controle de concorrência.
 - Avaliações: projeto, nome, nota, comentário, CPF normalizado como texto, visibilidade e datas; UNIQUE(project_id, cpf), nota de 1 a 5 e campos obrigatórios no banco e no servidor.
@@ -45,13 +47,13 @@ Modelo inicial: usuários internos vinculados à identidade de autenticação, p
 - Remoção de projeto com avaliação significa arquivamento; não usar cascata destrutiva para apagar avaliações e histórico.
 - Migração: exportação local, validação em ambiente de desenvolvimento, mapeamento de responsáveis, tratamento explícito dos exemplos, importação idempotente e reconciliação das contagens.
 
-## Fotos e CPF
+## Fotos e CPF: contrato aprovado
 
 Decisão aprovada em 4 de novembro de 2026: salvar CPF no banco e montar a URL da foto ao listar avaliações. Não usar R2, proxy de imagens, HMAC ou cópia local da foto.
 
 - Receber CPF por HTTPS, normalizar e validar os 11 dígitos, preservando zeros à esquerda. Armazenar como texto, nunca número.
 - Impedir avaliações duplicadas com UNIQUE(project_id, cpf), inclusive para avaliações ocultas e envios simultâneos.
-- Configurar EMPLOYEE_PHOTO_BASE_URL como https://intranet-cifra.netlify.app/funcionarios/ e montar photoUrl com o CPF normalizado e a extensão .jpeg. Não aceitar URL arbitrária do visitante.
+- Configurar EMPLOYEE_PHOTO_BASE_URL como https://intranet-cifra.netlify.app/funcionarios/{cpf}.jpeg e substituir o marcador pelo CPF normalizado. Não aceitar URL arbitrária do visitante.
 - A API pública retorna a URL apenas para avaliações visíveis de projetos públicos e não arquivados. O navegador busca a imagem diretamente no servidor de origem.
 - Se a imagem falhar, usar avatar local padrão, sem repetir indefinidamente o carregamento e sem impedir a avaliação.
 - Não exibir CPF como texto no card nem incluir campo cpf separado na resposta pública. Não registrar CPF, corpo da avaliação ou URL da foto nos logs.
@@ -62,7 +64,7 @@ Ocultar a avaliação remove sua apresentação no Vault; não revoga a URL de o
 
 ## Limites e custos consultados
 
-Valores em dólares e sujeitos a mudança; franquia não é garantia de custo zero nem de disponibilidade.
+Referência histórica consultada em 4 de novembro de 2026, não revalidada nesta consolidação. Valores em dólares sujeitos a mudança; confirmar nas fontes antes de decidir publicação ou contratação. Franquia não garante custo zero ou disponibilidade.
 
 | Serviço | Limite publicado | Implicação |
 | --- | --- | --- |
@@ -76,9 +78,9 @@ Fontes: [Workers](https://developers.cloudflare.com/workers/platform/pricing/), 
 
 ## Dependências e configurações propostas
 
-Dependências: @neondatabase/serverless 1.2.0 autorizado e instalado na etapa 3, com lockfile. SDK oficial do Neon Auth compatível com a interface atual e Wrangler continuam candidatos, ainda não autorizados para instalação. Manter node:test. Não introduzir React, Next.js ou ORM por padrão.
+Dependências: @neondatabase/serverless 1.2.0 autorizado e instalado na etapa 3, com lockfile. @neon/auth 0.8.2 e esbuild 0.28.2 foram autorizados e instalados na etapa 4. Wrangler permanece não instalado; adoção depende de autorização. Manter node:test. Não introduzir React, Next.js ou ORM por padrão.
 
-Configurações previstas, sem valores reais: DATABASE_URL, APP_ORIGIN e EMPLOYEE_PHOTO_BASE_URL; URLs e configurações do Neon Auth serão definidas na integração. E-mail requer API key ou SMTP apropriado. Produção e desenvolvimento usam credenciais e recursos distintos; testes usam dados sintéticos, não cópias não anonimizadas de produção.
+Configurações atuais, sem valores reais, estão em .env.example: DATABASE_URL, APP_ORIGIN, EMPLOYEE_PHOTO_BASE_URL e variáveis do Neon Auth. E-mail requer API key ou SMTP apropriado. O ambiente de desenvolvimento isolado permanece pendente e deverá usar credenciais e recursos distintos de produção; testes usam dados sintéticos, não cópias não anonimizadas de produção.
 
 ## Verificações antes de considerar a arquitetura validada
 
@@ -88,6 +90,6 @@ Configurações previstas, sem valores reais: DATABASE_URL, APP_ORIGIN e EMPLOYE
 4. Medir CPU e memória da API e da validação de sessão no Worker.
 5. Confirmar transação projeto/auditoria e corrida de duas avaliações idênticas.
 6. Testar composição da URL, preservação de zeros à esquerda, fallback e ausência de avaliações ocultas nas listagens.
-7. Definir retenção e realizar recuperação de backup do banco, que conterá CPFs.
+7. Definir retenção e procedimento operacional de recuperação. Ensaios anteriores de restauração já foram registrados; o banco contém CPFs.
 
-A opção A e a integração direta de fotos estão aprovadas. A etapa 2 ainda tem pendências de e-mail, gestão de convites, retenção e validação técnica. As etapas de implementação e as operações sensíveis mantêm suas autorizações específicas.
+A opção A e a integração direta de fotos estão aprovadas. A etapa 2 ainda tem pendências de e-mail de produção, revogação de acesso de usuários, retenção e validação técnica. As etapas de implementação e as operações sensíveis mantêm suas autorizações específicas.

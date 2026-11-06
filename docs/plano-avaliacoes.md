@@ -1,17 +1,26 @@
 # Plano do catálogo público e das avaliações do Vault
 
-## Acompanhamento da etapa 4
+## Acompanhamento consolidado em 6 de novembro de 2026
 
-Em 4 de novembro de 2026, o usuário autorizou a implementação da etapa 4, as dependências fixas @neon/auth 0.8.2 e esbuild 0.28.2 e, posteriormente, a integração controlada com o Neon. A migration 002 foi aplicada; o primeiro usuário foi provisionado, verificou o e-mail e acessou a gestão. Convites usam link sem vínculo de e-mail, uso único, validade de 48 horas e revogação pelo emissor.
+O plano foi aprovado em 3 de novembro de 2026. Os requisitos abaixo descrevem o destino aprovado; o quadro distingue implementação de validação. Funcionamento e comandos atuais estão no [README](../README.md); evidências anteriores, no [histórico](historico-implementacao.md). Esta consolidação não revalidou produção.
 
-Validação atual: 48 testes locais e build aprovados; revisão independente realizada. Perfil, formulários, cabeçalho e transições foram ajustados e inspecionados no navegador. Logout, novo login e recuperação de senha reais continuam pendentes; a etapa não está integralmente validada. Escopo no [plano da etapa 4](implementacao-etapa-4.md) e evidências no [README](../README.md).
+| Etapa | Estado atual | Pendências |
+| --- | --- | --- |
+| 1. Organização | Implementada; estrutura separada e versionada. | Nenhuma implementação restante identificada nesse escopo. |
+| 2. Arquitetura | Neon Auth com autorização interna e fotos diretas aprovados; implementação atual em Node. | Prova no Workers, e-mail de produção, limites operacionais/custos e retenção. |
+| 3. Persistência | Schema, repositório e importador implementados; migration 001 aplicada conforme registro. | Integração completa em desenvolvimento isolado e migração do acervo com tratamento de exemplos e responsáveis. |
+| 4. Autenticação | Implementada; migration 002 e primeiro usuário concluídos conforme registro. | Logout, novo login, recuperação reais e convite com segunda conta de ponta a ponta. |
+| 5. Gestão | Responsável, visibilidade independente, criação privada e arquivamento com auditoria implementados. | Integração real de arquivamento/concorrência e validação visual completa desse fluxo. |
+| 6. Catálogo público | Implementado e validado localmente: catálogo, página individual, projeção pública e bloqueio de privados/arquivados por URL. Commit e push da branch autorizados em 6 de novembro. | Integração das consultas em PostgreSQL isolado; sem autorização de merge ou deploy. Evidências no [plano da etapa 6](implementacao-etapa-6.md). |
+| 7. Avaliações e fotos | Validação, inserção interna e unicidade no banco preparadas. | API pública, formulário, listagem, fotos/fallback e proteção contra abuso. |
+| 8. Indicadores e curadoria | Não implementados; schema prevê visibilidade e ações de auditoria. | Estrelas, média, contagem, comentários, ocultação/reexibição e auditoria. |
+| 9. Validação e publicação | Há ensaios históricos de backup/restauração; entrega final pendente. | Fluxo completo, permissões, acessibilidade, celular, operação e publicação autorizada. |
 
-Plano aprovado em 3 de novembro de 2026. A implementação será incremental, começando pela organização das pastas. Este documento registra o escopo aprovado; não indica que as funcionalidades já foram implementadas.
+A base de 63 testes passou na inspeção documental de 6 de novembro de 2026; testes adicionais e evidências da etapa 6 estão no seu plano. Isso não substitui os testes reais pendentes. A próxima etapa funcional é a 7; as pendências anteriores permanecem abertas.
 
 ## Contexto atual
 
-O Vault utiliza HTML, CSS e JavaScript puro, um servidor Node para arquivos estáticos e persistência de projetos e auditoria em localStorage. Ainda não possui banco de dados ou autenticação. O responsável é informado em texto livre e os detalhes do projeto são apresentados em modal.
-
+O Vault mantém HTML, CSS e JavaScript puro, servidor Node, Neon Auth e PostgreSQL. A gestão usa API protegida; localStorage permanece como modo legado explícito, sem sincronização automática. Responsáveis são selecionados entre usuários internos, preservando nomes legados sem vínculo automático. Visitantes usam catálogo e páginas individuais renderizados no servidor; o modal da gestão permanece para dados internos e edição.
 ## Área interna
 
 - Decisão aprovada em 4 de novembro de 2026: CPF obrigatório também no cadastro de usuários internos, armazenado como texto normalizado de 11 dígitos. Não expor esse campo nas consultas públicas nem em logs. Esta exigência é distinta do CPF das avaliações.
@@ -114,28 +123,12 @@ Cobrir também duplicidade simultânea, avaliação sem foto, campos inválidos,
 
 ## Decisões técnicas pendentes e autorizações
 
-Cloudflare no plano gratuito e Neon são a infraestrutura pretendida, sem garantia de compatibilidade ou gratuidade integral antes da validação da etapa 2. Foram aprovados Neon Managed Better Auth com autorização interna por convite e CPF salvo no Neon para compor URLs diretas das fotos, sem R2 ou HMAC. Permanecem pendentes a validação da integração, serviço de e-mail, limites operacionais, provisionamento inicial e política de retenção.
+Cloudflare Workers continua como hospedagem pretendida, sem prova de execução ou garantia de gratuidade integral. A integração Node/Neon já foi implementada; a arquitetura ainda depende de validação no runtime de destino, e-mail de produção, limites operacionais e política de retenção. A permissão para revogar acessos de usuários permanece sem definição; não se confunde com revogar os próprios convites.
 
-A aprovação deste plano não autoriza automaticamente operações sensíveis posteriores. Solicitar autorização específica conforme as instruções do usuário para banco, autenticação, dados sensíveis, infraestrutura, dependências, commits, push, PRs, merges e produção. Preparar resultados concretos e revisáveis antes da solicitação.
+Convites sem vínculo de e-mail, uso único, validade de 48 horas e revogação pelo emissor foram adotados na etapa 4. O primeiro usuário foi provisionado. Dependências instaladas e configuração operacional estão no README; não tratar esses itens como propostas ainda não executadas.
 
-Na inspeção inicial, a pasta não era um repositório Git. Definir o versionamento antes das alterações de implementação, sem criar commits sem autorização.
+A aprovação deste plano não autoriza operações sensíveis posteriores. Solicitar autorização específica para banco, autenticação, dados sensíveis, infraestrutura, dependências, commits, push, PRs, merges e produção. Autorizações e testes controlados anteriores não permitem novas operações em produção.
 
-## Acompanhamento da etapa 1
+## Evidências e histórico
 
-Em 4 de novembro de 2026, a organização foi implementada: domínio, infraestrutura, páginas, scripts, estilos, servidor e testes foram separados. O inicializador server.cjs na raiz preserva o comando existente. Porta, origem e chaves de armazenamento permanecem iguais. Não foram adicionados banco, autenticação ou dependências.
-
-Evidências: 15 testes aprovados antes da mudança e 16 depois, incluindo integração HTTP; sintaxe verificada e conferência de navegação no Chrome em origem isolada. Detalhes, limitações e roteiro manual estão no README. Implementação disponível para revisão; revisão independente e versionamento Git permanecem pendentes. A autorização para iniciar a etapa 1 foi executada com cópia local prévia dos arquivos, sem inicializar Git ou criar commit.
-
-## Acompanhamento da etapa 2
-
-Pesquisa e proposta registradas em [Arquitetura da etapa 2](arquitetura-etapa-2.md). Em 4 de novembro de 2026, o usuário aprovou a opção A: conta no provedor não concede acesso interno sem convite. Também determinou salvar CPF no banco e montar a URL direta da foto ao listar avaliações, sem R2. Essas decisões substituem as propostas anteriores de cadastro fechado no provedor, HMAC e cópia das fotos. As demais pendências técnicas continuam indicadas no documento.
-
-## Acompanhamento da etapa 3
-
-Em 4 de novembro de 2026, o usuário autorizou inicializar Git sem commit, implementar o modelo descrito no [plano da etapa 3](implementacao-etapa-3.md), preparar migrations locais e instalar o driver Neon. Git foi inicializado na branch `etapa-3-persistencia`, o driver 1.2.0 foi fixado com lockfile, e foram preparados schema SQL, repositório transacional, importador e testes. Nenhuma migration foi aplicada e nenhum recurso remoto foi criado ou acessado.
-
-Validação local: 31 testes aprovados e sintaxe JS/CJS conferida. Testes do repositório usam conexões simuladas. O teste real de integração foi preparado, mas ainda depende de ambiente de desenvolvimento e autorização para aplicar a migration. A interface continua usando localStorage até a integração protegida pela autenticação. A etapa 3 não está concluída; não houve commit, deploy ou revisão independente. Detalhes no README.
-
-Atualização posterior em 4 de novembro: o usuário autorizou expressamente usar `production` e aplicar a migration pelo agente, mantendo CPF obrigatório nos usuários internos. A migration 001 foi validada em PostgreSQL 18 local isolado, com dados sintéticos; backup anterior à aplicação foi restaurado com sucesso em ambiente local sem rede. A aplicação transacional em `neondb` foi concluída e verificada: oito tabelas no schema `vault`, versão 1 e nove tabelas existentes de autenticação preservadas. Não houve testes funcionais nem importação em produção. A validação completa do repositório em Neon de desenvolvimento continua pendente. Evidências e recuperação estão no README.
-
-Atualização operacional da etapa 4 em 4 de novembro: o usuário autorizou testes controlados no banco de produção, aplicação da migration 002 e configuração do Auth. Backup restaurado e migration validada localmente antes da aplicação; versão 2 confirmada e nove tabelas Auth preservadas. Dez verificações passaram e os registros sintéticos foram removidos. Integração local configurada; cadastro, verificação e primeiro usuário concluídos. Recuperação de senha, logout e novo login reais continuam pendentes. Evidências no README.
+Os registros cronológicos das etapas 1 a 5, ciclos RED/GREEN, revisões e aplicações autorizadas das migrations estão preservados no [histórico](historico-implementacao.md). O repositório atual está versionado; os commits locais incluem autenticação e gestão da etapa 5. A indicação histórica de ausência de Git não descreve o estado atual.

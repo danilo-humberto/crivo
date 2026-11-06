@@ -2,6 +2,8 @@
   const statuses = ['Concluído', 'Em andamento', 'Planejado'];
   const categories = ['Operações', 'Financeiro', 'Pessoas', 'Infraestrutura', 'Comercial'];
   function safeUrl(value) { try { const u = new URL(value); return ['http:', 'https:'].includes(u.protocol) ? u.href : ''; } catch { return ''; } }
+  // The prefix prevents valid legacy IDs such as '.' and '..' becoming URL dot-segments.
+  const publicProjectPath = id => '/projetos/~' + encodeURIComponent(id);
   function validateProject(p) {
     if (!p || ['id','title','description','solution','owner','requested'].some(k => typeof p[k] !== 'string' || !p[k].trim())) throw Error('Preencha todos os campos obrigatórios.');
     if (!statuses.includes(p.status) || !categories.includes(p.category)) throw Error('Status ou área inválidos.');
@@ -18,6 +20,6 @@
   const normalize = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   function filterProjects(items, query='', status='', category='') { return items.filter(p => (!status || p.status === status) && (!category || p.category === category) && normalize([p.title,p.description,p.solution,p.owner,p.category].join(' ')).includes(normalize(query))); }
   function savings(p) { return p.alternatives.length ? Math.max(0, Math.min(...p.alternatives.map(a=>a.cost))-p.cost) : 0; }
-  const api = {validateProject,filterProjects,savings,safeUrl,statuses,categories};
+  const api = {validateProject,filterProjects,savings,safeUrl,statuses,categories,publicProjectPath};
   if (typeof module !== 'undefined') module.exports = api; else root.VaultCore = api;
 })(globalThis);

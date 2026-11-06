@@ -1,15 +1,15 @@
 # Etapa 4 — autenticação e acesso interno
 
-Status: implementação local preparada em 4 de novembro de 2026; integração real pendente. O usuário autorizou implementar e instalar `@neon/auth` 0.8.2 e `esbuild` 0.28.2. Posteriormente, o usuário autorizou aplicar a migration 002 e realizar testes controlados no banco de produção: aplicação concluída após backup restaurado e validação local; dez verificações passaram com limpeza dos registros sintéticos. O fluxo real de cadastro e recuperação aguarda a senha definida pelo usuário. Requisitos no [plano geral](plano-avaliacoes.md), decisões na [arquitetura](arquitetura-etapa-2.md) e execução no [README](../README.md#etapa-4-autenticação-local-preparada).
+Status consolidado em 6 de novembro de 2026: autenticação e gestão pela API implementadas; migration 002 aplicada e primeiro usuário provisionado conforme registro operacional. Cadastro, verificação e acesso à gestão confirmados; logout, novo login, recuperação reais e fluxo completo de convite com segunda conta permanecem pendentes. Dependências aprovadas e instaladas: @neon/auth 0.8.2 e esbuild 0.28.2. Requisitos no [plano](plano-avaliacoes.md), funcionamento no [README](../README.md) e evidências no [histórico](historico-implementacao.md).
 
-## Escopo e abordagem
+## Escopo implementado e abordagem
 
 Implementar login, logout, cadastro para aceite de convite, verificação de e-mail, recuperação de senha e proteção da gestão com Neon Managed Better Auth. Manter HTML/JavaScript e Node existentes.
 
-1. Integrar o SDK oficial e validar sessão, e-mail verificado e autorização interna ativa no servidor. Cadastro no provedor não concede acesso; autoria vem da sessão. Confirmar contratos, versão e empacotamento antes de propor dependências.
+1. Integrar o SDK oficial e validar sessão, e-mail verificado e autorização interna ativa no servidor. Cadastro no provedor não concede acesso; autoria vem da sessão. SDK e empacotamento adotados nas versões fixadas acima.
 2. Preparar migration 002 aditiva para convites, preservando a 001 aplicada: token aleatório com apenas hash no banco, emissor, validade de 48 horas, consumo e revogação. Aceite com nome e CPF válido; consumo e concessão de acesso na mesma transação. GET não consome convite, e usuário inativo não é reativado automaticamente.
 3. Preparar comando administrativo para provisionar o primeiro usuário, com identidade e e-mail verificado conferidos, entrada segura do CPF e execução autorizada no destino escolhido. Sem endpoint público de provisionamento.
-4. Integrar projetos, alternativas, auditoria e lista mínima de responsáveis à API protegida, preservando transações, versões e nomes legados. Não importar localStorage automaticamente nem usá-lo como fallback silencioso. Novos controles de visibilidade e arquivamento ficam na etapa 5.
+4. Integrar projetos, alternativas, auditoria e lista mínima de responsáveis à API protegida, preservando transações, versões e nomes legados. Não importar localStorage automaticamente nem usá-lo como fallback silencioso. Controles de visibilidade e arquivamento foram implementados posteriormente na etapa 5.
 
 ## Escolhas e trade-offs
 
@@ -33,12 +33,12 @@ Implementar login, logout, cadastro para aceite de convite, verificação de e-m
 
 **Antes da integração real:** autorizar ambiente de desenvolvimento vazio, com Auth próprio e dados sintéticos. A configuração documentada é de produção; a integração completa da etapa 3 continua pendente. Não clonar dados ou sessões reais para testes.
 
-**Antes da ativação:** definir primeiro usuário, domínio e SMTP; autorizar separadamente provisionamento, aplicação de migrations e operações de produção. Não fornecer CPF real pelo chat. Requisitos de e-mail: [checklist oficial do Neon](https://neon.com/docs/auth/production-checklist).
+**Antes da publicação:** definir domínio e serviço de e-mail de produção. Primeiro usuário e migrations já foram concluídos no destino autorizado; novos provisionamentos e operações de produção exigem autorização própria. Não fornecer CPF real pelo chat. Requisitos de e-mail: [checklist oficial do Neon](https://neon.com/docs/auth/production-checklist).
 
 ## Evidências atuais
 
-Base anterior: 31 testes aprovados. Novos testes, revisão independente, correções e limitações estão registrados no README. A migration 002 foi aplicada ao destino de produção expressamente autorizado, com dez verificações controladas aprovadas. O primeiro usuário foi provisionado e o acesso à gestão foi confirmado. A etapa não está integralmente validada até concluir logout, novo login e recuperação de senha reais.
+Base anterior: 31 testes aprovados. Novos testes, revisão independente e correções estão registrados no histórico; limites atuais estão no README. A migration 002 foi aplicada ao destino de produção expressamente autorizado, com dez verificações controladas aprovadas. O primeiro usuário foi provisionado e o acesso à gestão foi confirmado. A etapa não está integralmente validada até concluir logout, novo login e recuperação de senha reais.
 
 ## Ajuste de interface aprovado
 
-Foto circular e nome abaixo da logo na conta e na gestão. O servidor monta a URL com o CPF salvo e o padrão de EMPLOYEE_PHOTO_BASE_URL; o navegador mantém as iniciais enquanto carrega e quando a foto falta ou falha. O CPF não é retornado como campo separado. Formulários, mensagens, convites e layout móvel foram reorganizados sem novas dependências.
+Foto circular e nome na conta e na gestão. Na gestão atual, logo à esquerda e conta/foto/nome à direita; o layout abaixo da logo pertence à conta. O servidor monta a URL com o CPF salvo e o padrão de EMPLOYEE_PHOTO_BASE_URL; o navegador mantém as iniciais enquanto carrega e quando a foto falta ou falha. O CPF não é retornado como campo separado. Formulários, mensagens, convites e layout móvel foram reorganizados sem novas dependências.

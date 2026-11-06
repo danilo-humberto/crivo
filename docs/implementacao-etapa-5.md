@@ -1,6 +1,6 @@
 # Etapa 5 — Gestão de projetos
 
-Implementação solicitada em 4 de novembro de 2026, conforme o [plano aprovado](plano-avaliacoes.md).
+Implementada em 4 de novembro de 2026, conforme o [plano aprovado](plano-avaliacoes.md). Responsável, controles de visibilidade e arquivamento com auditoria estão no código; 63 testes locais passaram em 6 de novembro. Revisão independente anterior do núcleo sem bloqueadores e inspeção do seletor registradas no [histórico](historico-implementacao.md). Integração real do arquivamento/concorrência e validação visual completa desse fluxo continuam pendentes. O commit local da etapa consta no Git; esta consolidação não verificou publicação remota.
 
 ## Escopo e abordagem
 
@@ -19,4 +19,4 @@ TDD para seleção válida/inválida, preservação do legado, visibilidade, cri
 
 ## Limites
 
-Sem dependências novas, alterações de autenticação, migration ou acesso remoto. Integração real com banco, produção, commit e publicação não fazem parte desta execução. A consulta pública segura será implementada na etapa 6. As pendências reais de logout e recuperação da etapa 4 permanecem independentes.
+Sem dependências novas, alterações de autenticação, migration ou acesso remoto. Integração real com banco, produção e publicação não fizeram parte da implementação inicial. O usuário posteriormente autorizou commit e push; o commit local foi conferido. Novas operações exigem autorização própria. A consulta pública segura foi implementada na etapa 6, com validação local e integração real ainda pendente. As pendências reais de logout e recuperação da etapa 4 permanecem independentes.
