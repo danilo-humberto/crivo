@@ -1,7 +1,8 @@
 const {randomBytes,createHmac,timingSafeEqual}=require('node:crypto');
 
-function createReviewProtection({now=Date.now,perIp=10,total=200,windowMs=600000}={}){
-  const secret=randomBytes(32),ips=new Map();
+function createReviewProtection({now=Date.now,perIp=10,total=200,windowMs=600000,secret=randomBytes(32)}={}){
+  if(Buffer.byteLength(secret)<32)throw Error('Segredo de avaliações inválido.');
+  const ips=new Map();
   let resetAt=0,count=0;
   const signature=(project,expires)=>createHmac('sha256',secret).update(JSON.stringify([project,expires])).digest('hex');
   return {

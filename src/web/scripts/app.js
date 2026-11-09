@@ -70,12 +70,25 @@ function render(){
 
   $('#projects').innerHTML=filtered.length?filtered.map(p=>`<article class="card"><div class="card-top"><span class="project-area">${esc(p.category)}</span>${badge(p)}</div><h3>${esc(p.title)}</h3><p class="card-description">${esc(p.description)}</p><div class="card-meta"><span class="avatar">${esc(initials(p.owner))}</span><span>${esc(p.owner)}</span><time datetime="${esc(p.completed||p.requested)}">${p.completed ? 'Concluído' : 'Solicitado'} em ${date(p.completed||p.requested)}</time></div><div class="card-bottom"><span>${p.status==='Concluído'?`${money(savings(p))}/mês de economia estimada`:(p.status==='Planejado'?'Aguardando início':'Solução em desenvolvimento')}</span><button class="detail-button" data-detail="${esc(p.id)}" aria-label="Ver detalhes de ${esc(p.title)}">Abrir ficha</button></div></article>`).join(''):'<div class="empty"><h3>Nenhum projeto por aqui.</h3><p>Ajuste os filtros ou cadastre uma nova solução da equipe.</p><button class="secondary" id="clear-filters">Limpar filtros</button></div>';
 }
+function confirmProjectRemoval(title){
+  const dialog=$('#remove-dialog');
+  $('#remove-project-name').textContent=title;
+  $('#remove-explanation').textContent=VaultStorage.remote?'Se houver avaliações, o projeto será arquivado e elas serão preservadas. Sem avaliações, será excluído. O histórico permanece disponível.':'O projeto sairá do acervo, mas uma cópia completa ficará na auditoria.';
+  dialog.returnValue='';
+  return new Promise(resolve=>{
+    dialog.addEventListener('close',()=>{
+      const confirmed=dialog.returnValue==='remove';
+      dialog.returnValue='';
+      resolve(confirmed);
+    },{once:true});
+    dialog.showModal();
+  });
+}
 function showDetail(id){const p=projects.find(p=>p.id===id);if(!p)return;const detailRaw=storedRaw;
   $('#detail-content').innerHTML=`<div class="dialog-heading"><div><p class="eyebrow">${esc(p.category)}</p><h2 id="detail-title">${esc(p.title)}</h2></div><button class="icon-button" data-close aria-label="Fechar">×</button></div>${badge(p)}<h3>O que é o sistema</h3><p class="detail-description">${esc(p.description)}</p><h3>A solução</h3><p class="detail-description">${esc(p.solution)}</p><dl class="detail-facts"><div><dt>Responsável / equipe</dt><dd>${esc(p.owner)}</dd></div><div><dt>Custo mensal</dt><dd>${money(p.cost)}</dd></div><div><dt>Solicitado em</dt><dd>${date(p.requested)}</dd></div><div><dt>Concluído em</dt><dd>${date(p.completed)}</dd></div></dl>${safeUrl(p.url)?`<a class="primary detail-link" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener noreferrer">Acessar solução</a>`:'<p class="detail-description">Nenhum link cadastrado.</p>'}<h3>Comparação de soluções</h3><p class="detail-description">Valores mensais em reais. Os exemplos e preços iniciais são fictícios.</p><div class="table-wrap"><table><thead><tr><th>Solução</th><th>Custo mensal</th><th>Características / observações</th></tr></thead><tbody><tr class="own-row"><td>${esc(p.title)} · TI</td><td>${money(p.cost)}</td><td>Solução interna, adaptada à empresa.</td></tr>${p.alternatives.map(a=>`<tr><td>${esc(a.name)}</td><td>${money(a.cost)}</td><td>${esc(a.notes)}</td></tr>`).join('')}</tbody></table></div><p class="detail-description">${p.alternatives.length?`Economia potencial: ${money(savings(p))}/mês frente à alternativa mais barata. Não inclui custos de implantação e desenvolvimento.`:'Nenhuma alternativa cadastrada para comparação.'}</p>${VaultStorage.remote&&p.is_public?`<p><a href="${esc(VaultCore.publicProjectPath(p.id))}" target="_blank" rel="noopener noreferrer">Abrir página pública</a></p>`:""}<div class="dialog-actions"><button class="secondary danger" id="delete-project">Remover projeto</button><button class="primary" id="edit-project">Editar projeto</button></div>`;
   $('#edit-project').onclick=()=>{$('#detail-dialog').close();openForm(p,detailRaw);};
   $('#delete-project').onclick=async ()=>{
-    const explanation=VaultStorage.remote?'Se houver avaliações, o projeto será arquivado e elas serão preservadas. Sem avaliações, será excluído. O histórico permanece disponível.':'O projeto sairá do acervo, mas uma cópia completa ficará na auditoria.';
-    if(!confirm('Remover “'+p.title+'”? '+explanation))return;
+    if(!await confirmProjectRemoval(p.title))return;
     const button=$('#delete-project');button.disabled=true;
     try{const result=await persist(projects.filter(x=>x.id!==id),detailRaw);
       if(result){$('#detail-dialog').close();toast(result.removal?.action==='archived'?'Projeto arquivado. Avaliações e histórico preservados.':'Projeto excluído.');}

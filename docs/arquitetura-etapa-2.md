@@ -93,3 +93,6 @@ Configurações atuais, sem valores reais, estão em .env.example: DATABASE_URL,
 7. Definir retenção e procedimento operacional de recuperação. Ensaios anteriores de restauração já foram registrados; o banco contém CPFs.
 
 A opção A e a integração direta de fotos estão aprovadas. A etapa 2 ainda tem pendências de e-mail de produção, revogação de acesso de usuários, retenção e validação técnica. As etapas de implementação e as operações sensíveis mantêm suas autorizações específicas.
+
+
+Atualização de 9/11/2026 — Workers retomado por autorização específica do usuário: Wrangler 4.159.0 instalado; adaptação Node/Workers e proteção de avaliações por Durable Object implementadas e testadas localmente. 111/111 testes Node e 4/4 cenários workerd aprovados, com I/O externo simulado; dry-run de publicação aprovado. Destino escolhido: workers.dev. Publicação, configuração de segredos/origem e validação na borda permanecem pendentes. Detalhes no [roteiro Cloudflare](publicacao-cloudflare.md). Esta atualização substitui a suspensão anterior, preservada acima como histórico.

@@ -2,9 +2,11 @@
 
 Aplicativo em HTML, CSS e JavaScript com servidor Node, autenticação Neon Managed Better Auth e persistência PostgreSQL no Neon. A gestão inclui as funcionalidades da etapa 5; a etapa 6 acrescenta catálogo e páginas públicas de projetos, e a etapa 7 implementa avaliações públicas com fotos. A etapa 8 acrescenta indicadores nos cards e curadoria com auditoria, implementados localmente e aprovados para integração à main em 6 de novembro de 2026.
 
-Estado consolidado em 6 de novembro de 2026 por inspeção do código, documentação e Git local. Etapas 6 e 7 integradas à main local nos commits `6136b34` e `628e303`; a etapa 8 está implementada na branch `codex/etapa-8-indicadores-curadoria`, com prévia validada pelo usuário e commit/integração à main/push autorizados em 6 de novembro de 2026; integração real ainda pendente. A próxima etapa do plano é a 9, validação e preparação da publicação. As referências Git remotas foram conferidas para esta finalização; registros de banco/produção são históricos. Deploy não foi comprovado.
+Estado consolidado em 6 de novembro de 2026 por inspeção do código, documentação e Git local. Etapas 6 e 7 integradas à main local nos commits `6136b34` e `628e303`; a etapa 8 consta na main local no commit `0820b84`, conferido no planejamento da etapa 9. A integração com PostgreSQL real continua pendente; o estado remoto não foi revalidado neste planejamento. A próxima etapa do plano é a 9, validação e preparação da publicação. As referências Git remotas foram conferidas para esta finalização; registros de banco/produção são históricos. Deploy não foi comprovado.
 
 ## Referências
+
+- [Planejamento da etapa 9](docs/implementacao-etapa-9.md): plano aprovado, com validação local iniciada; [evidências e pendências](docs/validacao-etapa-9.md).
 
 - [Plano aprovado e acompanhamento](docs/plano-avaliacoes.md): requisitos e pendências por etapa.
 - [Arquitetura](docs/arquitetura-etapa-2.md): escolhas adotadas e validação pendente no Cloudflare.
@@ -15,16 +17,26 @@ Estado consolidado em 6 de novembro de 2026 por inspeção do código, documenta
 
 ## Executar
 
-Requer Node 22 ou posterior. Instale as versões do lockfile com `npm ci`. Configure as variáveis de `.env.example` por mecanismo seguro e execute `npm start`: gera `dist/auth.js` antes de iniciar o servidor. Os comandos não carregam `.env` automaticamente.
+Requer Node 22 ou posterior. Instale as versões do lockfile com `npm ci`. Configure o `.env` de desenvolvimento a partir de `.env.example` por mecanismo seguro e execute `npm start`: gera `dist/auth.js`, carrega o `.env` e inicia o servidor. O perfil local prevalece sobre variáveis herdadas do terminal e exige `VAULT_DB_ENV=development` e `VAULT_EXPECTED_HOST` igual ao hostname de `DATABASE_URL`. As demais CLIs não carregam `.env` automaticamente.
 
 No modo padrão (`VAULT_MODE=managed`), abra http://localhost:4173. `APP_ORIGIN` deve coincidir com a origem usada e autorizada no Auth. O servidor escuta em `127.0.0.1:4173`; acessos às páginas de entrada/gestão por host diferente redirecionam para a origem configurada. Use HTTPS fora do desenvolvimento local. Sem configuração, a API protegida nega acesso.
 
 - `/` e `/index.html` redirecionam para `/catalogo` no modo gerenciado.
 - `/catalogo` e `/projetos/~:id` oferecem leitura pública, sem sessão. O prefixo `~` preserva IDs legados como `.` e `..`; o restante do ID é codificado para URL.
-- `/auth` reúne entrada, cadastro, verificação, recuperação e convites.
+- `/auth` reúne entrada, cadastro, verificação, recuperação e convites. Após criar a conta, solicita automaticamente o código de verificação e reaproveita o e-mail; o usuário informa apenas o código. Falhas de envio preservam o cadastro e permitem reenviar. Sessões não verificadas recuperam o e-mail ao recarregar, sem disparar novos códigos automaticamente.
 - `/management` exige sessão válida, e-mail verificado e usuário interno ativo.
 
 Reinicie após mudanças no servidor/configuração e recarregue as abas após atualizar a interface. `node server.cjs` e `node server/server.cjs` iniciam sem gerar o bundle; prefira `npm start`.
+
+## Ambientes Neon
+
+Em 9 de novembro de 2026, o usuário confirmou que a branch Neon chamada production ainda não está em uso e autorizou usá-la para testes sintéticos. O .env local aponta novamente para essa branch, com VAULT_DB_ENV=development (classificação de uso), endpoint esperado e Auth existente. O nome da branch permanece production; não se trata de uma branch development isolada. Quando o sistema entrar em uso, interromper testes nesse destino e separar novamente os ambientes.
+
+npm start carrega somente o .env local, prevalecendo sobre variáveis herdadas do terminal. .env.production permanece separado, marcado como produção e ignorado pelo Git; não é carregado automaticamente. Ambos os perfis referem-se agora à mesma branch. A conexão direta DATABASE_URL_UNPOOLED fica reservada a operações explicitamente autorizadas. node server.cjs mantém execução por variáveis injetadas.
+
+A branch development criada por schema-only teve a habilitação do Auth bloqueada pelo Neon. Sua exclusão permanente foi confirmada pelo usuário e concluída; o painel passou a listar somente production. O perfil antigo e a definição do schema Auth foram preservados em imports/, fora do Git. Não usar esse perfil antigo para iniciar o aplicativo.
+
+Validação atual: cinco testes de integração PostgreSQL/HTTP aprovados; catálogo e página Auth HTTP 200, gestão sem sessão redirecionando para /auth e consulta de sessão HTTP 200. Logout, recusa de acesso após saída, novo login e fluxo de cadastro/publicação/avaliação/curadoria foram conferidos no Chrome com dados sintéticos. Recuperação concluída pelo usuário e acesso posterior à gestão conferido em 9 de novembro de 2026. Convite com segunda conta continua pendente. O perfil local usa fotos em example.invalid para não consultar o servidor real durante testes. Migrations 001/002 presentes no destino atual; nenhuma migration foi aplicada nesta troca. Aceitar uma feature não aplica migrations automaticamente: SQL, destino, backup/recuperação e autorização específica continuam necessários.
 
 ## Gestão e auditoria
 
@@ -120,11 +132,15 @@ Use explicitamente `VAULT_MODE=local`, fora de produção, e a origem original d
 - `server/persistence/`, `server/migrations/` e CLIs: banco e importação.
 - `tests/`: suíte local; `tests/integration/`: PostgreSQL descartável.
 
-Versões fixadas: `@neondatabase/serverless` 1.2.0, `@neon/auth` 0.8.2 e `esbuild` 0.28.2. Não há React, Next.js, ORM ou Wrangler. Há build; não há lint nem análise de tipos configurados. Node ainda precisa de adaptação e prova de execução no Workers.
+Versões fixadas: `@neondatabase/serverless` 1.2.0, `@neon/auth` 0.8.2 e `esbuild` 0.28.2. Wrangler 4.159.0 foi adicionado para Workers. Não há React, Next.js ou ORM. Há build; não há lint nem análise de tipos configurados. A adaptação passou no workerd local, com serviços externos simulados; publicação e conferência na borda ainda pendentes.
 
 A interface usa Outfit e Source Sans 3 com fallback, abas navegáveis por teclado e movimentos que respeitam `prefers-reduced-motion`. Na gestão, logo à esquerda e conta/foto/nome à direita; a conta mantém layout próprio. Acessibilidade e celular do fluxo completo pertencem à validação da etapa 9.
 
 ## Validação e limites
+
+[Acessibilidade da etapa 9](docs/acessibilidade-etapa-9.md): verificações parciais de teclado/reflow/contraste executadas no Chrome. Selo Planejado corrigido e revalidado (5,21:1 no projeto público); leitor de tela, zoom real e múltiplos navegadores pendentes.
+
+Em 9 de novembro de 2026, as quatro suítes PostgreSQL existentes passaram pelo driver real no banco configurado, confirmado pelo usuário como fora de uso em produção e autorizado para testes. O `.env` foi ajustado para desenvolvimento; migrations 001/002 já estavam presentes. Não houve limpeza dos registros sintéticos. Pendências de integração citadas nos registros anteriores são históricas para esses cenários; concorrência HTTP/arquivamento, Auth real e demais validações da etapa 9 continuam abertas. [Evidências e limites](docs/validacao-etapa-9.md).
 
 Na inspeção documental de 6 de novembro de 2026, a base de 63 testes passou. Na etapa 6, foram acrescentados testes de leitura pública, campos permitidos, links, métodos, erros, escape e IDs legados. Evidências finais no [plano da etapa 6](docs/implementacao-etapa-6.md). Testes locais usam dados sintéticos e provedores/conexões simulados; não comprovam concorrência real no PostgreSQL.
 
@@ -145,3 +161,22 @@ Os registros anteriores documentam backups antes das migrations e restauração 
 Restaurar primeiro em destino separado e autorizado com pg_restore 18; conferir integridade, inventário e permissões gerenciadas do Neon. O ensaio da etapa 4 usou `--no-owner --no-acl`. Não substituir produção automaticamente. Retenção e procedimento final de operação/publicação continuam pendentes.
 
 Em desenvolvimento isolado: login → convite → segunda conta/verificação/aceite → criação privada → responsável → visibilidade → auditoria → exclusão sem avaliações e arquivamento com avaliações sintéticas → logout e recusa da sessão anterior → recuperação. Conferir conflitos, fotos/fallback, teclado e celular. Importar duas vezes, conferir contagens/snapshots e rollback, preservando localStorage. No fluxo público: catálogo → projeto → avaliação sintética → ocultar/reexibir na gestão → recarregar comentários/indicadores e conferir auditoria. As etapas 6 a 8 estão implementadas; a integração completa permanece pendente.
+
+
+Atualização de 9/11/2026: segunda conta verificou o e-mail, recebeu acesso pelo convite autorizado e abriu a gestão. Bloqueio anterior ao aceite e recusa de novo aceite pela mesma conta conferidos. Validação de autoria por escrita nessa conta não executada. Ver [registro da etapa 9](docs/validacao-etapa-9.md).
+
+
+Atualização de 9/11/2026: autoria pela segunda conta comprovada na auditoria, com responsável preservado. Revisão independente identificou falha parcial de cadastro, corrigida e reavaliada; 105/105 testes locais e build aprovados. Prova Workers mantida pendente por decisão do usuário, sem instalar Wrangler. Publicação ainda não preparada; detalhes e limites no registro de validação da etapa 9.
+
+
+Repetição do fluxo básico em 9/11/2026: projeto fictício novo criado privado, editado/publicado, avaliado, ocultado e reexibido; busca, indicador público, bloqueio de duplicidade mesmo oculta e autoria na auditoria conferidos no navegador. Sem defeito funcional observado nesse recorte; detalhes no registro de validação da etapa 9.
+
+
+Atualização de 9/11/2026: confirmação de remoção agora usa modal personalizado do Vault (Cancelar como foco inicial). Arquivamento preservou avaliação e cinco eventos; exclusão de projeto sintético sem avaliações preservou snapshot completo na auditoria. 107/107 testes locais, build e revisão independente aprovados no recorte. Workers permanece pendente. Consulte o registro de validação da etapa 9.
+
+
+## Cloudflare Workers — preparação local em 9/11/2026
+
+Adaptação autorizada implementada em `workers/`, compartilhando handlers Node e allowlist de assets. `npm run test:worker` executa quatro cenários locais com dados e serviços simulados; `npm run check:worker` empacota sem publicar. Limites de avaliações coordenados por Durable Object; assinatura estável e pool por requisição. 111/111 testes Node e 4/4 Workers aprovados. [Configuração, publicação e recuperação](docs/publicacao-cloudflare.md). Nenhum deploy ou alteração remota de infraestrutura nesta rodada.
+
+A limpeza foi executada pelo responsável e conferida em 9/11/2026: zero projetos, avaliações, auditoria, alternativas, convites e importações; somente a conta principal no Auth e seu usuário interno ativo permanecem, além das duas migrations. Os relatos anteriores de registros sintéticos são históricos. Banco limpo não foi usado nos novos testes Workers.

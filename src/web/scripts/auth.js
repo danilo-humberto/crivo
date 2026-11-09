@@ -56,13 +56,26 @@ async function api(path,method='GET',data){
   const body=await response.json();if(!response.ok)throw Error(body.error||'Não foi possível concluir.');return body;
 }
 async function sdk(call){const result=await call(await options());if(result.error)throw Error(result.error.message||'Não foi possível concluir.');return result.data;}
+function verificationEmail(email){
+  $('code-email').value=email;
+  $('code-email').readOnly=Boolean(email);
+  $('verification-email-field').hidden=Boolean(email);
+  $('verification-destination').hidden=!email;
+  $('verification-destination').textContent=email?`Código de verificação para ${email}.`:'';
+  $('send-code').textContent=email?'Reenviar código':'Enviar código';
+}
+async function sendVerificationCode(){
+  if(!$('code-email').reportValidity())return false;
+  await sdk(opts=>auth.emailOtp.sendVerificationOtp({email:$('code-email').value,type:'email-verification'},opts));
+  return true;
+}
 async function refresh(){
   const result=await auth.getSession({query:{disableCookieCache:true}});
   if(result.error)throw Error('Autenticação indisponível. Tente novamente mais tarde.');
   const signed=Boolean(result.data?.user);
   $('signed-out').hidden=(signed&&result.data.user.emailVerified)||Boolean(resetToken);$('account').hidden=!signed||Boolean(resetToken);
   tabs.forEach(tab=>{tab.hidden=signed&&tab.id!=='auth-tab-verify';});
-  if(signed&&!result.data.user.emailVerified)selectTab('verify');
+  if(signed&&!result.data.user.emailVerified){verificationEmail(result.data.user.email);selectTab('verify');}
   $('verify-section').hidden=Boolean(resetToken)||Boolean(result.data?.user?.emailVerified);
   VaultProfile.render($('user-profile'),result.data?.user);
   $('auth-title').textContent=resetToken?'Uma nova senha.':signed?'Sua conta no Vault.':'Seu acesso ao cofre.';
@@ -82,9 +95,20 @@ function onForm(id,run){$(id).addEventListener('submit',async event=>{
 });}
 function onClick(id,run){$(id).addEventListener('click',async()=>{const button=$(id);button.disabled=true;try{await run();}catch(error){message(error.message);}finally{button.disabled=false;}});}
 onForm('login',async data=>{await sdk(opts=>auth.signIn.email(data,opts));$('login-password').value='';message('Conta conectada.');await refresh();});
-onForm('signup',async data=>{await sdk(opts=>auth.signUp.email(data,opts));$('signup-password').value='';message('Conta criada. Verifique seu e-mail e aceite um convite para acessar a gestão.');await refresh();});
+onForm('signup',async data=>{
+  await sdk(opts=>auth.signUp.email(data,opts));
+  $('signup-password').value='';verificationEmail(data.email);selectTab('verify');
+  $('send-code').disabled=true;
+  let sent=false;
+  try{sent=await sendVerificationCode();}catch{ /* O cadastro já existe; o usuário pode tentar o reenvio. */ }
+  finally{$('send-code').disabled=false;}
+  let sessionWarning='';
+  try{await refresh();}catch{sessionWarning=' Não foi possível atualizar a sessão agora. Você pode continuar a verificação.';}
+  message((sent?'Conta criada. Código enviado. Confira seu e-mail e informe o código.':'Conta criada, mas não foi possível enviar o código. Use Reenviar código para tentar novamente.')+sessionWarning);
+  if(sent)$('verify-otp').focus();
+});
 onForm('recovery',async data=>{await sdk(opts=>auth.requestPasswordReset({...data,redirectTo:`${location.origin}/auth`},opts));message('Se houver uma conta elegível, você receberá as instruções de recuperação.');});
-onClick('send-code',async()=>{if(!$('code-email').reportValidity())return;const data={email:$('code-email').value};await sdk(opts=>auth.emailOtp.sendVerificationOtp({...data,type:'email-verification'},opts));message('Se a conta puder ser verificada, o código será enviado ao e-mail informado.');});
+onClick('send-code',async()=>{if(!await sendVerificationCode())return;message('Se a conta puder ser verificada, o código será enviado ao e-mail informado.');$('verify-otp').focus();});
 onForm('verify',async data=>{await sdk(opts=>auth.emailOtp.verifyEmail(data,opts));$('verify-otp').value='';message('E-mail verificado.');await refresh();});
 onForm('reset',async data=>{await sdk(opts=>auth.resetPassword({...data,token:resetToken},opts));resetToken=null;$('reset').reset();$('reset-section').hidden=true;message('Senha atualizada. Entre com a nova senha.');await refresh();});
 onForm('accept',async data=>{await api('/api/invitations/accept','POST',{...data,token:invitation});invitation=null;$('accept').reset();$('accept-section').hidden=true;message('Convite aceito.');await refresh();});

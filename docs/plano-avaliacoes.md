@@ -14,9 +14,15 @@ O plano foi aprovado em 3 de novembro de 2026. Os requisitos abaixo descrevem o 
 | 6. Catálogo público | Implementado e validado localmente; commit `6136b34` presente na main local. Integração autorizada junto à etapa 7. | Suíte de integração das consultas em PostgreSQL isolado; publicação pendente. Evidências no [plano da etapa 6](implementacao-etapa-6.md). |
 | 7. Avaliações e fotos | Implementada; commit `628e303` presente na main local. Registro de 87 testes locais e ensaio SQL isolado aprovados; leitura autorizada em produção e revisão independente sem bloqueadores de código. | Fluxo completo via driver/aplicação e proteção no runtime de publicação. Produção sem projetos públicos ativos na conferência registrada. Evidências no [plano da etapa 7](implementacao-etapa-7.md). |
 | 8. Indicadores e curadoria | Implementada e aprovada pelo usuário: indicadores de avaliações visíveis nos cards, link para comentários, ocultação/reexibição e auditoria. 97 testes locais aprovados e prévia sintética conferida. | Integração PostgreSQL real de curadoria/indicadores/concorrência; publicação pendente. Evidências no [plano da etapa 8](implementacao-etapa-8.md). |
-| 9. Validação e publicação | Há ensaios históricos de backup/restauração; entrega final pendente. | Fluxo completo, permissões, acessibilidade, celular, operação e publicação autorizada. |
+| 9. Validação e preparação da publicação | [Plano aprovado](implementacao-etapa-9.md); execução iniciada com 97/97 testes locais e build aprovados. [Registro](validacao-etapa-9.md). | Fluxo completo, permissões, migração, acessibilidade, celular, runtime e operação; preparar publicação para autorização específica. |
 
-A última suíte local é de 97/97 testes aprovados na etapa 8; evidências e limites estão no seu plano. As etapas 6 e 7 estão integradas à main local; a etapa 8 está na branch `codex/etapa-8-indicadores-curadoria`, com prévia validada pelo usuário e commit/integração à main/push autorizados em 6 de novembro de 2026; integração real ainda pendente. A próxima etapa do plano é a 9; as pendências anteriores permanecem abertas. Na finalização, foram conferidas as referências remotas e a ausência de workflows GitHub Actions; não houve acesso a produção. Push foi autorizado no registro da etapa 7; a etapa 8 recebeu autorização própria de commit, integração à main e push após validação da prévia pelo usuário. Isso não comprova deploy.
+A última suíte local é de 97/97 testes aprovados na etapa 8; evidências e limites estão no seu plano. As etapas 6 e 7 estão integradas à main local; a etapa 8 consta na main local no commit `0820b84`, conferido no planejamento da etapa 9. A integração com PostgreSQL real continua pendente; o estado remoto não foi revalidado neste planejamento. A próxima etapa do plano é a 9; as pendências anteriores permanecem abertas. Na finalização, foram conferidas as referências remotas e a ausência de workflows GitHub Actions; não houve acesso a produção. Push foi autorizado no registro da etapa 7; a etapa 8 recebeu autorização própria de commit, integração à main e push após validação da prévia pelo usuário. Isso não comprova deploy.
+
+## Atualização da etapa 9 — 9 de novembro de 2026
+
+As quatro suítes PostgreSQL existentes passaram no banco configurado, confirmado pelo usuário como ainda fora de uso em produção e autorizado para testes sintéticos. Configuração local ajustada para desenvolvimento; identidade, privilégios e migrations 001/002 conferidos. Esta evidência atualiza as pendências históricas de execução dessas suítes no quadro de 6 de novembro; não encerra concorrência via HTTP/arquivamento, Auth real ou publicação. [Registro completo](validacao-etapa-9.md).
+
+Atualização posterior: development excluída após confirmação; usuário autorizou continuar na branch production ainda fora de uso. Cinco testes de integração passaram, incluindo HTTP/concorrência. Logout/novo login e cadastro → publicação → avaliação → curadoria conferidos no navegador; restauração sintética local ensaiada. Recuperação concluída pelo usuário e acesso posterior à gestão conferido; segunda conta, acessibilidade completa e publicação continuam pendentes. Consulte o registro da etapa 9. Contraste do selo Planejado corrigido (5,21:1), verificações adicionais de acessibilidade registradas e 99/99 testes locais e build aprovados.
 
 ## Contexto atual
 
@@ -132,3 +138,22 @@ A aprovação deste plano não autoriza operações sensíveis posteriores. Soli
 ## Evidências e histórico
 
 Os registros cronológicos das etapas 1 a 5, ciclos RED/GREEN, revisões e aplicações autorizadas das migrations estão preservados no [histórico](historico-implementacao.md). O repositório atual está versionado; os commits locais incluem autenticação e gestão da etapa 5. A indicação histórica de ausência de Git não descreve o estado atual.
+
+### Ajuste aprovado durante a etapa 9 — verificação após cadastro
+
+Em 9/11/2026, o usuário solicitou envio automático do código após criar conta, sem repetir o e-mail. Implementado na interface, preservando verificação e convite como requisitos de acesso interno. 103/103 testes locais e build aprovados; reenvio real aceito pelo provedor, recebimento/entrada do código e aceite do convite aguardando participação humana.
+
+
+Atualização de 9/11/2026: segunda conta verificou o e-mail, recebeu acesso pelo convite autorizado e abriu a gestão. Bloqueio anterior ao aceite e recusa de novo aceite pela mesma conta conferidos. Validação de autoria por escrita nessa conta não executada. Ver [registro da etapa 9](validacao-etapa-9.md).
+
+
+Atualização de 9/11/2026: autoria pela segunda conta comprovada na auditoria, com responsável preservado. Revisão independente identificou falha parcial de cadastro, corrigida e reavaliada; 105/105 testes locais e build aprovados. Prova Workers mantida pendente por decisão do usuário, sem instalar Wrangler. Publicação ainda não preparada; detalhes e limites no registro de validação da etapa 9.
+
+
+Repetição do fluxo básico em 9/11/2026: projeto fictício novo criado privado, editado/publicado, avaliado, ocultado e reexibido; busca, indicador público, bloqueio de duplicidade mesmo oculta e autoria na auditoria conferidos no navegador. Sem defeito funcional observado nesse recorte; detalhes no registro de validação da etapa 9.
+
+
+Atualização de 9/11/2026: confirmação de remoção agora usa modal personalizado do Vault (Cancelar como foco inicial). Arquivamento preservou avaliação e cinco eventos; exclusão de projeto sintético sem avaliações preservou snapshot completo na auditoria. 107/107 testes locais, build e revisão independente aprovados no recorte. Workers permanece pendente. Consulte o registro de validação da etapa 9.
+
+
+Atualização de 9/11/2026 — Workers retomado por autorização específica do usuário: Wrangler 4.159.0 instalado; adaptação Node/Workers e proteção de avaliações por Durable Object implementadas e testadas localmente. 111/111 testes Node e 4/4 cenários workerd aprovados, com I/O externo simulado; dry-run de publicação aprovado. Destino escolhido: workers.dev. Publicação, configuração de segredos/origem e validação na borda permanecem pendentes. Detalhes no [roteiro Cloudflare](publicacao-cloudflare.md). Esta atualização substitui a suspensão anterior, preservada acima como histórico.

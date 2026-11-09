@@ -1,0 +1,10 @@
+{
+  "name": "vault-local-tests",
+  "main": "fixture.mjs",
+  "compatibility_date": "2026-11-09",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {"directory": "../../dist/worker-assets", "binding": "ASSETS", "run_worker_first": true, "html_handling": "none"},
+  "vars": {"REVIEW_SIGNING_SECRET": "synthetic-signing-secret-local-tests-only"},
+  "durable_objects": {"bindings": [{"name": "REVIEW_LIMITER", "class_name": "ReviewLimiter"}]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["ReviewLimiter"]}]
+}

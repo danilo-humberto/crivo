@@ -25,7 +25,7 @@ function parsePage(url){
   if(!/^[1-9]\d{0,4}$/.test(raw)||Number(raw)>10000)throw fail(400);
   return Number(raw);
 }
-function createReviewHandler(projects,reviews,{origin,protection=createReviewProtection()}={}){
+function createReviewHandler(projects,reviews,{origin,protection=createReviewProtection(),clientIp=req=>req.socket.remoteAddress||'unknown'}={}){
   const pageData=async(id,url)=>({page:parsePage(url),...(await reviews.listReviews(id,parsePage(url))),formToken:protection.token(id),sent:url.searchParams.get('enviada')==='1'});
   async function handle(req,res,url){
     const match=url.pathname.match(/^\/(api\/public\/projects|projetos)\/~([^/]+)\/reviews$/);
@@ -42,7 +42,7 @@ function createReviewHandler(projects,reviews,{origin,protection=createReviewPro
       if(!allowed.includes(req.method)){res.setHeader('Allow',allowed.join(', '));throw fail(405);}
       try{id=decodeURIComponent(match[2]);}catch{throw fail(404);}
       if(req.method==='POST'){
-        const retry=protection.take(req.socket.remoteAddress||'unknown');
+        const retry=await protection.take(clientIp(req));
         if(retry){res.setHeader('Retry-After',String(retry));throw fail(429);}
         if(!origin||req.headers.origin!==new URL(origin).origin||req.headers['sec-fetch-site']==='cross-site')throw fail(403);
         const type=(req.headers['content-type']||'').split(';')[0].trim().toLowerCase();
