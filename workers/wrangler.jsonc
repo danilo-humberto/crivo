@@ -1,11 +1,16 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
-  "name": "vault-ti",
+  "name": "crivo",
   "main": "index.mjs",
   "compatibility_date": "2026-11-09",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "preview_urls": false,
+  "vars": {
+    "APP_ORIGIN": "https://crivo.cifraengenharia.workers.dev",
+    "NEON_AUTH_BASE_URL": "https://ep-spring-unit-b6qfojdy.neonauth.c-2.sa-east-1.aws.neon.tech/neondb/auth",
+    "EMPLOYEE_PHOTO_BASE_URL": "https://intranet-cifra.netlify.app/funcionarios/{cpf}.jpeg"
+  },
   "assets": {"directory": "../dist/worker-assets", "binding": "ASSETS", "run_worker_first": true, "html_handling": "none"},
   "durable_objects": {"bindings": [{"name": "REVIEW_LIMITER", "class_name": "ReviewLimiter"}]},
   "migrations": [{"tag": "v1", "new_sqlite_classes": ["ReviewLimiter"]}],

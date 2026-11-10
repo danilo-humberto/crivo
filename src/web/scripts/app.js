@@ -229,8 +229,8 @@ function showAudit(id){
     $('#audit-dialog').showModal();return;
   }
   $('#audit-content').innerHTML=`<div class="dialog-heading"><div><p class="eyebrow">${actionLabels[entry.action]} em ${timestamp(entry.at)}</p><h2 id="audit-title">${esc(project.title)}</h2></div><button type="button" class="icon-button" data-close aria-label="Fechar">×</button></div>${entry.demo?'<p class="audit-note">Exemplo fictício para demonstração. Nenhum projeto do seu acervo foi alterado ou excluído por este registro.</p>':''}<p class="audit-note">Autor da ação: ${esc(entry.actor)}. Responsável e autor da alteração são informações distintas.</p>${entry.action==='baseline'?'<p class="detail-description">Registro inicial: esta cópia marca o início do histórico, não a data de criação do projeto.</p>':''}<div class="table-wrap audit-comparison" tabindex="0" role="region" aria-label="Comparação das versões"><table><caption>${entry.action==='updated'?'Comparação completa: campos alterados destacados':entry.action==='deleted'?'Cópia preservada antes da exclusão':'Cópia completa do projeto'}</caption><thead><tr><th scope="col">Campo</th>${entry.before?'<th scope="col">Antes</th>':''}${entry.after?'<th scope="col">'+(entry.before?'Depois':'Dados registrados')+'</th>':''}</tr></thead><tbody>${VaultAudit.fields.map(field=>`<tr class="${entry.action==='updated'&&changed.includes(field)?'changed-field':''}"><th scope="row">${fieldLabels[field]}${entry.action==='updated'&&changed.includes(field)?'<small>Alterado</small>':''}</th>${entry.before?`<td>${esc(auditValue(entry.before,field))}</td>`:''}${entry.after?`<td>${esc(auditValue(entry.after,field))}</td>`:''}</tr>`).join('')}</tbody></table></div><div class="dialog-actions">${entry.before?'<button type="button" class="secondary" id="download-before">Baixar versão anterior</button>':''}${entry.after?'<button type="button" class="secondary" id="download-after">Baixar versão registrada</button>':''}<button type="button" class="primary" data-close>Fechar</button></div>`;
-  if(entry.before)$('#download-before').onclick=()=>downloadJSON(entry.before,'vault-ti-versao-anterior.json');
-  if(entry.after)$('#download-after').onclick=()=>downloadJSON(entry.after,'vault-ti-versao-registrada.json');
+  if(entry.before)$('#download-before').onclick=()=>downloadJSON(entry.before,'crivo-versao-anterior.json');
+  if(entry.after)$('#download-after').onclick=()=>downloadJSON(entry.after,'crivo-versao-registrada.json');
   $('#audit-dialog').showModal();
 }
 const tabs=[...document.querySelectorAll('[role="tab"]')];
@@ -244,13 +244,13 @@ function updateViewIndicator(){
 }
 new ResizeObserver(updateViewIndicator).observe(viewTabBar);
 document.fonts?.ready.then(updateViewIndicator);
-function activateTab(tab){for(const item of tabs){const active=item===tab;item.setAttribute('aria-selected',String(active));item.tabIndex=active?0:-1;document.getElementById(item.getAttribute('aria-controls')).hidden=!active;}const context=$('.topbar strong');if(context)context.textContent=tab.id==='tab-audit'?'Auditoria':'Cofre de projetos';updateViewIndicator();if(tab.id==='tab-audit')renderAudit();}
+function activateTab(tab){for(const item of tabs){const active=item===tab;item.setAttribute('aria-selected',String(active));item.tabIndex=active?0:-1;document.getElementById(item.getAttribute('aria-controls')).hidden=!active;}const context=$('.topbar strong');if(context)context.textContent=tab.id==='tab-audit'?'Auditoria':'Catálogo de projetos';updateViewIndicator();if(tab.id==='tab-audit')renderAudit();}
 for(const tab of tabs){tab.addEventListener('click',()=>activateTab(tab));tab.addEventListener('keydown',event=>{let index=tabs.indexOf(tab);if(event.key==='ArrowRight')index=(index+1)%tabs.length;else if(event.key==='ArrowLeft')index=(index+tabs.length-1)%tabs.length;else if(event.key==='Home')index=0;else if(event.key==='End')index=tabs.length-1;else return;event.preventDefault();activateTab(tabs[index]);tabs[index].focus();});}
 $('#audit-search').addEventListener('input',()=>{auditLimit=30;renderAudit();});
 $('#audit-filter').addEventListener('change',()=>{auditLimit=30;renderAudit();});
 $('#audit-more').addEventListener('click',()=>{auditLimit+=30;renderAudit();});
 $('#audit-list').addEventListener('click',event=>{const button=event.target.closest('[data-audit]');if(button)showAudit(button.dataset.audit);});
-$('#download-audit').addEventListener('click',()=>{downloadJSON({version:2,exportedAt:new Date().toISOString(),projects,audit:auditEntries},'vault-ti-historico.json');});
+$('#download-audit').addEventListener('click',()=>{downloadJSON({version:2,exportedAt:new Date().toISOString(),projects,audit:auditEntries},'crivo-historico.json');});
 render();
 renderAudit();
 

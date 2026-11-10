@@ -78,7 +78,7 @@ async function refresh(){
   if(signed&&!result.data.user.emailVerified){verificationEmail(result.data.user.email);selectTab('verify');}
   $('verify-section').hidden=Boolean(resetToken)||Boolean(result.data?.user?.emailVerified);
   VaultProfile.render($('user-profile'),result.data?.user);
-  $('auth-title').textContent=resetToken?'Uma nova senha.':signed?'Sua conta no Vault.':'Seu acesso ao cofre.';
+  $('auth-title').textContent=resetToken?'Uma nova senha.':signed?'Sua conta no Crivo.':'Seu acesso ao Crivo.';
   $('auth-intro').textContent=signed?'Seu acesso e os convites da equipe, em um só lugar.':'Projetos, decisões e soluções da equipe em um só lugar.';
   $('invites').hidden=true;$('management-link').hidden=true;
   if(!signed)return;

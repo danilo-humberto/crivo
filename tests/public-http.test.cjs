@@ -17,7 +17,7 @@ test('catálogo e página própria acessíveis sem sessão; gestão continua pro
   assert.doesNotMatch(html,/local-storage.js|app.js|<dialog|Custo mensal|Economia|Auditoria/);
   assert.match(html,/<html lang="pt-BR"/);assert.match(html,/<label for="catalog-search"/);
   const detail=await fetch(base+'/projetos/~public');assert.equal(detail.status,200);
-  assert.match(await detail.text(),/<title>Portal de operações — Vault TI<\/title>/);
+  assert.match(await detail.text(),/<title>Portal de operações — Crivo<\/title>/);
   const root=await fetch(base+'/',{redirect:'manual'});assert.equal(root.headers.get('location'),'/catalogo');
   assert.equal((await fetch(base+'/api/projects')).status,401);
   assert.equal((await fetch(base+'/management',{redirect:'manual'})).headers.get('location'),'/auth');

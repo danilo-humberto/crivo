@@ -1,4 +1,5 @@
 const files = new Map(Object.entries({
+  '/favicon.svg':'src/web/favicon.svg',
   '/':'src/web/pages/index.html', '/index.html':'src/web/pages/index.html',
   '/core.js':'src/domain/core.js', '/audit.js':'src/domain/audit.js',
   '/local-storage.js':'src/infrastructure/local-storage.js',

@@ -1,4 +1,6 @@
-# Vault TI
+# Crivo
+
+Publicado em **https://crivo.cifraengenharia.workers.dev** em 10/11/2026. Catálogo, conexão Neon e proteção das rotas conferidos na borda. Login com senha no novo domínio ainda não repetido. [Publicação e operação](docs/publicacao-cloudflare.md). Registros anteriores abaixo preservam o histórico de preparação.
 
 Aplicativo em HTML, CSS e JavaScript com servidor Node, autenticação Neon Managed Better Auth e persistência PostgreSQL no Neon. A gestão inclui as funcionalidades da etapa 5; a etapa 6 acrescenta catálogo e páginas públicas de projetos, e a etapa 7 implementa avaliações públicas com fotos. A etapa 8 acrescenta indicadores nos cards e curadoria com auditoria, implementados localmente e aprovados para integração à main em 6 de novembro de 2026.
 
@@ -180,3 +182,16 @@ Atualização de 9/11/2026: confirmação de remoção agora usa modal personali
 Adaptação autorizada implementada em `workers/`, compartilhando handlers Node e allowlist de assets. `npm run test:worker` executa quatro cenários locais com dados e serviços simulados; `npm run check:worker` empacota sem publicar. Limites de avaliações coordenados por Durable Object; assinatura estável e pool por requisição. 111/111 testes Node e 4/4 Workers aprovados. [Configuração, publicação e recuperação](docs/publicacao-cloudflare.md). Nenhum deploy ou alteração remota de infraestrutura nesta rodada.
 
 A limpeza foi executada pelo responsável e conferida em 9/11/2026: zero projetos, avaliações, auditoria, alternativas, convites e importações; somente a conta principal no Auth e seu usuário interno ativo permanecem, além das duas migrations. Os relatos anteriores de registros sintéticos são históricos. Banco limpo não foi usado nos novos testes Workers.
+
+
+## Nome Crivo e favicon — 10/11/2026
+
+Renomeação solicitada pelo usuário implementada localmente: Crivo nos títulos, cabeçalhos, rodapés, mensagens, nomes dos downloads e metadados npm. Favicon SVG com C branco sobre azul incluído nas páginas de gestão, conta, catálogo e projeto e na allowlist compartilhada com Workers. Identificadores técnicos legados (schema, variáveis, cookies, armazenamento e módulos) e endereço publicado permanecem para preservar compatibilidade.
+
+Validação: `npm test` (111/111), `npm run build:worker` e verificação HTTP local com dados sintéticos das quatro páginas, GET/HEAD do favicon e presença no pacote Worker aprovados. `git diff --check` sem erros. Alteração de identidade visual e texto, sem ciclo TDD; asserção existente do título atualizada. Sem revisão independente ou inspeção visual no navegador nesta rodada. Para conferir manualmente, executar `npm start` no ambiente de desenvolvimento autorizado e verificar nome e ícone da aba no catálogo, projeto, conta e gestão. Nenhum commit, push ou deploy desta alteração executado.
+
+
+Atualização de 10/11/2026: Crivo e favicon publicados no novo endereço, domínio incluído no Neon Auth e versão a0254513-6187-4f32-a331-6a5ff868491d ativa. Quatro testes Workers e verificações HTTP reais aprovados. Login com senha no novo domínio ainda não repetido. Endereço vault-ti preservado, sem redirecionamento. Sem commit ou push adicional. [Registro da mudança](docs/publicacao-cloudflare.md#publicação-do-crivo--10112026).
+
+
+Atualização — 10/11/2026: endereço vault-ti agora redireciona automaticamente para crivo.cifraengenharia.workers.dev com HTTP 308, preservando caminho e parâmetros. Deploy 1c8464cf-0c76-452a-af8c-17d979ee8984 confirmado; 12 verificações locais, seis URLs remotas e chegada ao catálogo com 200 aprovadas. Substitui os registros anteriores de ausência de redirecionamento. Detalhes em [publicação](docs/publicacao-cloudflare.md). Nenhum commit ou push.

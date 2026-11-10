@@ -5,10 +5,10 @@ const badge=project=>`<span class="badge ${project.status==='Planejado'?'planned
 
 function layout(title,content,referrer='no-referrer'){
   return `<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="${referrer}"><title>${escape(title)} — Vault TI</title><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/catalog.css"></head>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="${referrer}"><title>${escape(title)} — Crivo</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/catalog.css"></head>
 <body class="public-page"><a class="skip-link" href="#content">Ir para o conteúdo</a>
-<header class="public-header"><a href="/catalogo" class="brand" aria-label="Vault TI, catálogo"><span class="brand-icon" aria-hidden="true">▧</span> vault<span class="brand-ti">TI</span></a><nav aria-label="Principal"><a href="/catalogo">Catálogo</a><a href="/auth">Área interna</a></nav></header>
-<main class="public-main">${content}<footer class="public-footer"><span>Vault TI</span><span>Projetos e soluções da equipe.</span></footer></main></body></html>`;
+<header class="public-header"><a href="/catalogo" class="brand" aria-label="Crivo, catálogo"><span class="brand-icon" aria-hidden="true">C</span> Crivo</a><nav aria-label="Principal"><a href="/catalogo">Catálogo</a><a href="/auth">Área interna</a></nav></header>
+<main class="public-main">${content}<footer class="public-footer"><span>Crivo</span><span>Projetos e soluções da equipe.</span></footer></main></body></html>`;
 }
 
 function card(project){

@@ -227,3 +227,9 @@ Falhas intermediárias de ensaio: teste do entry de publicação seguiu redireci
 Revisão independente encontrou P2: provider criado por requisição perdia o limite agregado de 16 chamadas pendentes por isolate. Corrigido com cache por configuração; teste com 17 chamadas inicia somente 16 upstream. Reavaliação final registrada abaixo quando concluída.
 
 Reavaliação independente final: P2 corrigido, nenhum bloqueador novo no recorte. Revisor executou 4/4 testes de provider, assets e proteção e diff sem erros; não reexecutou cenários runtime. Adaptação local concluída, configuração/publicação externa pendentes.
+
+
+Atualização — 10/11/2026: alteração de endereço autorizada e publicada em https://crivo.cifraengenharia.workers.dev, com identidade Crivo e favicon. Neon Auth atualizado; versão a0254513-6187-4f32-a331-6a5ff868491d ativa. Testes Workers 4/4 e verificações HTTP aprovados; login real no novo domínio não repetido. Endereço anterior preservado. Nenhum commit/push adicional. [Evidências e limites](publicacao-cloudflare.md#publicação-do-crivo--10112026).
+
+
+Atualização — 10/11/2026: endereço vault-ti agora redireciona automaticamente para crivo.cifraengenharia.workers.dev com HTTP 308, preservando caminho e parâmetros. Deploy 1c8464cf-0c76-452a-af8c-17d979ee8984 confirmado; 12 verificações locais, seis URLs remotas e chegada ao catálogo com 200 aprovadas. Substitui os registros anteriores de ausência de redirecionamento. Detalhes em [publicação](publicacao-cloudflare.md). Nenhum commit ou push.

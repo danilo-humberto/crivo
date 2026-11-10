@@ -6,7 +6,7 @@ const {createPublicHandler}=require('./public/http.cjs');
 const {createReviewHandler}=require('./public/review-http.cjs');
 // Keep public URLs stable and expose only explicitly listed assets.
 const {files}=require('./assets.cjs');
-const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8'};
+const types = {'.svg':'image/svg+xml','.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8'};
 function createHandler(options={}) {
   const mode=options.mode||'managed';
   const api=createApi({origin:'http://127.0.0.1:4173',...options});
@@ -56,7 +56,7 @@ function start(){
   if(options.mode!=='local'&&process.env.NEON_AUTH_BASE_URL){
     options.auth=require('./auth/provider.cjs').createProvider({baseUrl:process.env.NEON_AUTH_BASE_URL,cookieSecret:process.env.NEON_AUTH_COOKIE_SECRET,origin});
   }
-  return createServer(options).listen(4173,'127.0.0.1',()=>console.log(`Vault TI: ${origin}`));
+  return createServer(options).listen(4173,'127.0.0.1',()=>console.log(`Crivo: ${origin}`));
 }
 if(require.main===module)start();
 module.exports={createServer,createHandler,start};

@@ -50,7 +50,7 @@ function createApi({auth,authRepository,repository,origin}){
       const cookies=response.headers.getSetCookie();if(cookies.length)res.setHeader('Set-Cookie',cookies);
       if(!response.ok){
         const failure=await response.clone().json().catch(()=>({}));
-        if(['INVALID_CALLBACK_URL','INVALID_ORIGIN'].includes(failure.code))return json(res,503,{code:'AUTH_ORIGIN_NOT_ALLOWED',message:'Este endereço não está autorizado no provedor. Abra o Vault pelo endereço configurado.'});
+        if(['INVALID_CALLBACK_URL','INVALID_ORIGIN'].includes(failure.code))return json(res,503,{code:'AUTH_ORIGIN_NOT_ALLOWED',message:'Este endereço não está autorizado no provedor. Abra o Crivo pelo endereço configurado.'});
         if(action==='email-otp/verify-email'){
           const messages={OTP_EXPIRED:'O código expirou. Solicite um novo e use o e-mail mais recente.',INVALID_OTP:'Código inválido. Confira o código do e-mail mais recente.',TOO_MANY_ATTEMPTS:'Limite de tentativas atingido. Aguarde e solicite um novo código.'};
           if(Object.hasOwn(messages,failure.code))return json(res,failure.code==='TOO_MANY_ATTEMPTS'?429:400,{code:failure.code,message:messages[failure.code]});

@@ -1,0 +1,12 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "vault-ti",
+  "main": "redirect-legacy.mjs",
+  "compatibility_date": "2026-11-09",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "durable_objects": {"bindings": [{"name": "REVIEW_LIMITER", "class_name": "ReviewLimiter"}]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["ReviewLimiter"]}],
+  "observability": {"enabled": false}
+}

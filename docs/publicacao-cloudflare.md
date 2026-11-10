@@ -48,3 +48,25 @@ Registrar ID/versão do deploy e configuração aplicada sem valores secretos. E
 Backup anterior à limpeza: `imports/cleanup-2026-11-09/full-before-cleanup.dump`, restaurado com sucesso em PostgreSQL isolado. Contém dados anteriores, inclusive contas de teste; restaurá-lo desfaz a limpeza. Antes de entrar em uso, estabelecer backup do estado limpo, retenção, frequência, acesso restrito, perda aceitável e prazo de recuperação. Restaurações destrutivas ficam com o responsável humano conforme AGENTS.md.
 
 Referências oficiais consultadas: [ponte Node HTTP](https://developers.cloudflare.com/workers/runtime-apis/nodejs/http/), [Static Assets](https://developers.cloudflare.com/workers/static-assets/), [storage transacional de Durable Objects](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/) e [driver Neon](https://neon.com/docs/serverless/serverless-driver).
+
+
+## Publicação do Crivo — 10/11/2026
+
+Usuário autorizou expressamente a mudança para https://crivo.cifraengenharia.workers.dev, ajuste do Neon Auth e deploy. Origem adicionada aos trusted domains do projeto square-unit-99617803, branch production (br-quiet-meadow-b677tyju), confirmada no console. Domínio antigo e demais opções de Auth preservados.
+
+workers/wrangler.jsonc agora usa name=crivo e APP_ORIGIN com o novo endereço. Perfil local .env.production atualizado sem expor segredos. Novo Worker crivo criado, três segredos existentes transferidos por stdin (DATABASE_URL, NEON_AUTH_COOKIE_SECRET, REVIEW_SIGNING_SECRET), com o mesmo banco e credenciais previamente autorizados. Durable Object ReviewLimiter criado para o novo Worker com migration Cloudflare v1; nenhuma migration SQL, mudança de permissões ou gravação de dados de negócio. O Worker vault-ti permanece ativo e independente, sem redirecionamento automático; seus contadores de limite não são compartilhados com crivo.
+
+Deploy realizado com `wrangler deploy --config workers/wrangler.jsonc`; versão a0254513-6187-4f32-a331-6a5ff868491d confirmada com 100% do tráfego de crivo em `wrangler deployments list`. Marca Crivo e favicon incluídos. Repositório não renomeado; nenhum commit ou push realizado.
+
+Validações: `npm run test:worker` com 4/4 cenários locais simulados aprovados, incluindo build; suíte Node 111/111 aprovada na alteração de identidade imediatamente anterior. HTTP real: raiz redireciona a /catalogo; catálogo, Auth, bundle, SVG e API pública retornam 200; leitura pública Neon bem-sucedida; get-session sem sessão retorna 200; API interna retorna 401; gestão redireciona a /auth; arquivos privados retornam 404; cookie CSRF Secure confirmado. Nenhum dado de produção exibido nos registros. Login com senha, logout e e-mails no novo domínio não foram repetidos. Para validar manualmente, entrar em /auth no endereço novo e conferir acesso à gestão; cookies do domínio antigo não migram automaticamente.
+
+Reversão disponível por uso do endereço vault-ti anterior, preservado; não excluir recursos antigos sem autorização. Os registros anteriores de publicação e de pendências locais são históricos e não representam o estado desta versão.
+
+
+## Redirecionamento do endereço antigo — 10/11/2026
+
+Autorizado pelo usuário e publicado no Worker vault-ti: todas as rotas retornam HTTP 308 para https://crivo.cifraengenharia.workers.dev, preservando caminho e parâmetros. Cache-Control: no-store evita cache persistente durante a transição. Configuração dedicada em workers/wrangler-legacy.jsonc e handler workers/redirect-legacy.mjs; o Worker crivo não foi alterado. O handler não consulta banco nem Auth. Classe/binding/migration existente do Durable Object preservados; deploy com --keep-vars preserva variáveis remotas e segredos, sem exclusão de dados.
+
+Comandos: wrangler deploy --config workers/wrangler-legacy.jsonc --dry-run; wrangler deploy --config workers/wrangler-legacy.jsonc --keep-vars. Versão publicada: 1c8464cf-0c76-452a-af8c-17d979ee8984. Doze verificações locais do handler aprovadas (GET/HEAD/POST, caminhos, parâmetros, destino fixo e resposta vazia); seis URLs reais retornaram 308 para o destino esperado; navegação HTTP seguindo o redirecionamento chegou ao catálogo Crivo com 200. Sem TDD por ser alteração pequena de roteamento, validada diretamente antes/depois da publicação. Sem testes com escrita em produção, commit ou push.
+
+Para validação manual, abrir o endereço antigo em /catalogo ou /auth e observar a troca de domínio. Sessões antigas não são migradas entre domínios. A configuração anterior de vault-ti independente e sua disponibilidade como alternativa direta são agora históricas; para reversão, usar o histórico de versões do Worker mediante autorização, preservando seus bindings. Referência: https://developers.cloudflare.com/workers/examples/redirect/.
