@@ -76,3 +76,8 @@ Atualização — 10/11/2026: alteração de endereço autorizada e publicada em
 
 
 Atualização — 10/11/2026: endereço vault-ti agora redireciona automaticamente para crivo.cifraengenharia.workers.dev com HTTP 308, preservando caminho e parâmetros. Deploy 1c8464cf-0c76-452a-af8c-17d979ee8984 confirmado; 12 verificações locais, seis URLs remotas e chegada ao catálogo com 200 aprovadas. Substitui os registros anteriores de ausência de redirecionamento. Detalhes em [publicação](publicacao-cloudflare.md). Nenhum commit ou push.
+
+
+## Apresentação do produto e licença — 10/11/2026
+
+README reformulado por solicitação do usuário para apresentar o Crivo como produto em nuvem, sem associação institucional na apresentação. Três capturas reais de prévia local com dados fictícios adicionadas em docs/images; histórico anterior preservado em historico-readme-2026-11-10.md. Titular confirmado pelo usuário: Danilo Humberto. LICENSE proprietária e selo de licença incluídos, sem declarar certificado ou registro no INPI. Funcionalidades comerciais ainda ausentes explicitadas. Alteração documental: 12 referências locais verificadas, imagens inspecionadas e diff sem erros; suíte de código não repetida, sem mudança funcional. Sem commit, push ou deploy desta rodada.
