@@ -1,5 +1,7 @@
 # Plano do catálogo público e das avaliações do Vault
 
+> **Leitura atualizada em 10/11/2026:** consulte o [estado consolidado da publicação](publicacao-cloudflare.md#estado-consolidado--10112026). Os registros abaixo preservam o estado de cada etapa na data descrita; pendências históricas e operações ainda não executadas naquele momento não substituem a consolidação atual.
+
 ## Acompanhamento consolidado em 6 de novembro de 2026
 
 O plano foi aprovado em 3 de novembro de 2026. Os requisitos abaixo descrevem o destino aprovado; o quadro distingue implementação de validação. Funcionamento e comandos atuais estão no [README](../README.md); evidências anteriores, no [histórico](historico-implementacao.md). Esta consolidação não revalidou produção.
@@ -159,9 +161,15 @@ Atualização de 9/11/2026: confirmação de remoção agora usa modal personali
 Atualização de 9/11/2026 — Workers retomado por autorização específica do usuário: Wrangler 4.159.0 instalado; adaptação Node/Workers e proteção de avaliações por Durable Object implementadas e testadas localmente. 111/111 testes Node e 4/4 cenários workerd aprovados, com I/O externo simulado; dry-run de publicação aprovado. Destino escolhido: workers.dev. Publicação, configuração de segredos/origem e validação na borda permanecem pendentes. Detalhes no [roteiro Cloudflare](publicacao-cloudflare.md). Esta atualização substitui a suspensão anterior, preservada acima como histórico.
 
 
+Atualização de 10/11/2026: origem https://vault-ti.cifraengenharia.workers.dev autorizada no Neon Auth e variáveis locais de publicação preparadas. Infraestrutura remota do Worker, credencial restrita de runtime, SMTP e deploy pendentes; ver [roteiro](publicacao-cloudflare.md).
+
+
+Atualização de 10/11/2026: Vault publicado em https://vault-ti.cifraengenharia.workers.dev, versão 7c90ceae-68b0-4363-942e-e0de7a2ab3d6. Segredos e Durable Object provisionados com autorização específica. Catálogo/Neon, bloqueios sem sessão, login real, gestão e auditoria vazias conferidos em produção. Sem criação de dados de teste. Configuração/documentação desta rodada ainda não commitadas; a publicação não encerra as demais pendências da etapa 9. Ver [evidências](validacao-etapa-9.md).
+
+
 ## Identidade aprovada — 10/11/2026
 
-Nome do produto alterado para **Crivo**, por solicitação do usuário, com favicon próprio. Implementação e validação locais concluídas; publicação dessa mudança pendente. Identificadores técnicos e endereço existente preservados por compatibilidade. Evidências e validação manual no [README](../README.md#nome-crivo-e-favicon--10112026). Menções anteriores a Vault constituem registros históricos.
+Nome do produto alterado para **Crivo**, por solicitação do usuário, com favicon próprio. Implementação e validação locais concluídas; publicação dessa mudança pendente. Identificadores técnicos e endereço existente preservados por compatibilidade. Evidências e validação manual no [README](historico-readme-2026-11-10.md#nome-crivo-e-favicon--10112026). Menções anteriores a Vault constituem registros históricos.
 
 
 Atualização — 10/11/2026: alteração de endereço autorizada e publicada em https://crivo.cifraengenharia.workers.dev, com identidade Crivo e favicon. Neon Auth atualizado; versão a0254513-6187-4f32-a331-6a5ff868491d ativa. Testes Workers 4/4 e verificações HTTP aprovados; login real no novo domínio não repetido. Endereço anterior preservado. Nenhum commit/push adicional. [Evidências e limites](publicacao-cloudflare.md#publicação-do-crivo--10112026).

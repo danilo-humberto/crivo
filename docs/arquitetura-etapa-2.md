@@ -1,5 +1,7 @@
 # Arquitetura proposta para o Vault
 
+> **Leitura atualizada em 10/11/2026:** consulte o [estado consolidado da publicação](publicacao-cloudflare.md#estado-consolidado--10112026). Os registros abaixo preservam o estado de cada etapa na data descrita; pendências históricas e operações ainda não executadas naquele momento não substituem a consolidação atual.
+
 Consolidada em 6 de novembro de 2026. Neon Managed Better Auth, autorização interna por convite e fotos diretas foram adotados; a implementação atual roda em Node. Migrations 001/002, primeiro usuário e testes controlados constam no [histórico](historico-implementacao.md). Workers ainda não foi validado. O [README](../README.md) descreve os comandos atuais e o [plano](plano-avaliacoes.md) concentra o acompanhamento das etapas.
 
 ## Composição proposta
@@ -96,3 +98,6 @@ A opção A e a integração direta de fotos estão aprovadas. A etapa 2 ainda t
 
 
 Atualização de 9/11/2026 — Workers retomado por autorização específica do usuário: Wrangler 4.159.0 instalado; adaptação Node/Workers e proteção de avaliações por Durable Object implementadas e testadas localmente. 111/111 testes Node e 4/4 cenários workerd aprovados, com I/O externo simulado; dry-run de publicação aprovado. Destino escolhido: workers.dev. Publicação, configuração de segredos/origem e validação na borda permanecem pendentes. Detalhes no [roteiro Cloudflare](publicacao-cloudflare.md). Esta atualização substitui a suspensão anterior, preservada acima como histórico.
+
+
+Atualização de 10/11/2026: Vault publicado em https://vault-ti.cifraengenharia.workers.dev, versão 7c90ceae-68b0-4363-942e-e0de7a2ab3d6. Segredos e Durable Object provisionados com autorização específica. Catálogo/Neon, bloqueios sem sessão, login real, gestão e auditoria vazias conferidos em produção. Sem criação de dados de teste. Configuração/documentação desta rodada ainda não commitadas; a publicação não encerra as demais pendências da etapa 9. Ver [evidências](validacao-etapa-9.md).

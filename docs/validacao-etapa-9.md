@@ -1,5 +1,7 @@
 # Etapa 9 — Registro de execução
 
+> **Leitura atualizada em 10/11/2026:** consulte o [estado consolidado da publicação](publicacao-cloudflare.md#estado-consolidado--10112026). Os registros abaixo preservam o estado de cada etapa na data descrita; pendências históricas e operações ainda não executadas naquele momento não substituem a consolidação atual.
+
 ## Base local — 6 de novembro de 2026
 
 Plano aprovado pelo usuário, com início autorizado e autorizações sensíveis separadas. Trabalho na branch `codex/etapa-9-validacao-publicacao`, criada a partir de `0820b84`. As alterações documentais do planejamento em README, plano consolidado e documento da etapa foram preservadas.
@@ -228,6 +230,10 @@ Revisão independente encontrou P2: provider criado por requisição perdia o li
 
 Reavaliação independente final: P2 corrigido, nenhum bloqueador novo no recorte. Revisor executou 4/4 testes de provider, assets e proteção e diff sem erros; não reexecutou cenários runtime. Adaptação local concluída, configuração/publicação externa pendentes.
 
+
+## Configuração e primeira publicação — 10/11/2026
+
+Histórico da configuração do Neon Auth, decisões de credenciais/SMTP, primeira versão publicada e validações HTTP e de login no endereço antigo centralizado no [registro de publicação](publicacao-cloudflare.md#configuração-de-produção--10112026). Esses testes são evidências daquela publicação; não comprovam login no novo domínio.
 
 Atualização — 10/11/2026: alteração de endereço autorizada e publicada em https://crivo.cifraengenharia.workers.dev, com identidade Crivo e favicon. Neon Auth atualizado; versão a0254513-6187-4f32-a331-6a5ff868491d ativa. Testes Workers 4/4 e verificações HTTP aprovados; login real no novo domínio não repetido. Endereço anterior preservado. Nenhum commit/push adicional. [Evidências e limites](publicacao-cloudflare.md#publicação-do-crivo--10112026).
 

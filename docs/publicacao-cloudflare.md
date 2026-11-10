@@ -1,5 +1,15 @@
 # Publicação no Cloudflare Workers
 
+## Estado consolidado — 10/11/2026
+
+- Produto publicado em https://crivo.cifraengenharia.workers.dev, versão registrada `a0254513-6187-4f32-a331-6a5ff868491d`.
+- Endereço vault-ti redireciona para Crivo com HTTP 308, preservando caminho e parâmetros; versão registrada `1c8464cf-0c76-452a-af8c-17d979ee8984`.
+- Novo domínio autorizado no Neon Auth. Login real foi conferido no endereço antigo; no novo domínio foram verificadas as respostas HTTP, a leitura pública e os bloqueios sem sessão, sem repetir login com senha.
+- Preparação Workers, identidade/domínios e apresentação/licença estão integrados e publicados na main nos commits `397217a`, `bb6aebc` e `40d7b1a`, respectivamente. Deploys e operações Git são eventos distintos.
+- Permanecem as limitações registradas: conexão administrativa e SMTP compartilhado autorizados, necessidade de separar ambientes antes de novos testes com escrita, definições de backup/retenção e pendências de acessibilidade. A etapa 9 não é declarada integralmente concluída.
+
+Os relatos abaixo são cronológicos: “pendente” ou “sem commit” descreve o momento de cada relato. Esta consolidação usa evidências já registradas e Git conferido; não reexecuta testes nem revalida produção.
+
 Preparação local autorizada e executada em 9/11/2026. Destino escolhido: subdomínio `workers.dev`. Nenhum deploy, recurso remoto, segredo remoto ou migration Neon foi aplicado nesta preparação.
 
 ## Implementação e testes
@@ -48,6 +58,31 @@ Registrar ID/versão do deploy e configuração aplicada sem valores secretos. E
 Backup anterior à limpeza: `imports/cleanup-2026-11-09/full-before-cleanup.dump`, restaurado com sucesso em PostgreSQL isolado. Contém dados anteriores, inclusive contas de teste; restaurá-lo desfaz a limpeza. Antes de entrar em uso, estabelecer backup do estado limpo, retenção, frequência, acesso restrito, perda aceitável e prazo de recuperação. Restaurações destrutivas ficam com o responsável humano conforme AGENTS.md.
 
 Referências oficiais consultadas: [ponte Node HTTP](https://developers.cloudflare.com/workers/runtime-apis/nodejs/http/), [Static Assets](https://developers.cloudflare.com/workers/static-assets/), [storage transacional de Durable Objects](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/) e [driver Neon](https://neon.com/docs/serverless/serverless-driver).
+
+
+## Configuração de produção — 10/11/2026
+
+Wrangler autenticado pelo responsável na conta Danilo Humberto. Origem escolhida: https://vault-ti.cifraengenharia.workers.dev. Inclusão no Neon Auth do projeto vault, branch production, confirmada no console em Your trusted domains, após autorização específica e confirmação no momento da alteração. Demais opções preservadas, inclusive Allow Localhost; desligá-lo exige coordenar o fim do uso local dessa branch.
+
+workers/wrangler.jsonc preparado com APP_ORIGIN, NEON_AUTH_BASE_URL conferida no console e EMPLOYEE_PHOTO_BASE_URL confirmada pelo usuário (https://intranet-cifra.netlify.app/funcionarios/{cpf}.jpeg). Perfil .env.production atualizado localmente, ignorado pelo Git; assinatura de avaliações gerada se ausente, segredo de cookies existente preservado. Nenhum valor secreto exibido ou cadastrado na Cloudflare.
+
+Pendências reais: DATABASE_URL local usa neondb_owner; preparar credencial restrita de runtime antes de enviá-la à hospedagem, com autorização específica para papel/permissões. Neon Auth usa SMTP compartilhado auth@mail.myneon.app; serviço/remetente de produção precisam ser definidos. Não houve criação de Worker/Durable Object, alteração SQL, deploy, novo commit ou push nesta configuração. Login na borda só poderá ser conferido após publicação autorizada.
+
+
+Decisão do responsável em 10/11/2026: manter na publicação inicial o Neon Auth e o serviço compartilhado de e-mail já usados e validados no desenvolvimento, sem configurar novo SMTP. Essa decisão substitui a pendência de escolha de SMTP para esta publicação; permanecem os limites de envio do provedor compartilhado. A mesma branch Neon já limpa será utilizada. Nenhuma mudança adicional no provedor de e-mail foi executada. A credencial existente usa neondb_owner; seu envio à Cloudflare e o deploy ainda exigem autorização específica.
+
+
+## Publicação executada — 10/11/2026
+
+Autorização explícita do responsável: cadastrar os três segredos na Cloudflare usando a conexão Neon atual com neondb_owner, publicar vault-ti com Durable Object e validar acesso em produção. Publicado em https://vault-ti.cifraengenharia.workers.dev na conta Danilo Humberto. Versão ativa conferida em deployments list: 7c90ceae-68b0-4363-942e-e0de7a2ab3d6 (100% do tráfego). Base de código: commit 397217af5b1562aab3f47830c6460ddb89199862, acrescida da configuração de variáveis ainda não commitada.
+
+Operações executadas: secret bulk por stdin, somente DATABASE_URL, NEON_AUTH_COOKIE_SECRET e REVIEW_SIGNING_SECRET, sem imprimir valores; criação inicial do Worker pelo Wrangler; npm run build:worker; wrangler deploy --config workers/wrangler.jsonc. Criado binding REVIEW_LIMITER para ReviewLimiter com migration Cloudflare v1. Nenhuma migration ou alteração de permissões no Neon. Segredo de cookies preservado e assinatura de avaliações preparada anteriormente.
+
+Validação real por HTTP: / redireciona ao catálogo; /catalogo, /auth e /auth.js retornam 200; /api/public/projects retorna lista vazia via Neon; /api/projects sem sessão retorna 401; /management sem sessão redireciona a /auth; /.env e /src/web/pages/index.html retornam 404; /api/csrf emite cookie Secure. Um POST vazio sem token em projeto inexistente retornou 403 após passar pelo coordenador de tentativas, sem inserir avaliação nem consultar projeto; esta chamada consome uma tentativa na janela do Durable Object.
+
+Validação no Chrome: responsável digitou credenciais na página de produção; Conta conectada e acesso ativo confirmados. Gestão identificou Danilo Humberto, exibiu zero projetos e valores zerados; auditoria exibiu zero registros. Evidência visual local: vault-producao-validado.png na pasta de visualizações da sessão. Nenhum projeto, avaliação ou convite foi criado na validação. Login real comprova sessão/provedor, autorização interna e leitura do banco na borda; envio de e-mail, logout e gravações não foram repetidos em produção.
+
+Limitações e decisões preservadas: conexão administrativa neondb_owner e SMTP compartilhado usados por autorização explícita. Allow Localhost permanece habilitado para o fluxo local existente; separar ambientes antes de retomar testes com escrita. Permissões restritas, SMTP próprio, política operacional de backups/retenção e pendências de acessibilidade permanecem melhorias/decisões abertas. O deploy não conclui automaticamente toda a etapa 9. Esta publicação não criou commit nem push adicionais.
 
 
 ## Publicação do Crivo — 10/11/2026
