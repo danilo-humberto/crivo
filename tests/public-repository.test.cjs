@@ -3,6 +3,16 @@ const assert=require('node:assert/strict');
 const {createPublicRepository}=require('../server/persistence/public-repository.cjs');
 
 const row={id:'public',title:'Projeto',description:'Resumo',solution:'Solução',category:'Operações',status:'Planejado',requested:'2026-11-06',completed:'',owner:'Equipe',url:null};
+test('solicitante público depende de projeção condicional e omite campos vazios',async()=>{
+  let selected={...row,requester:null,requester_department:null};
+  const repo=createPublicRepository({query:async sql=>{
+    for(const field of ['requester','requester_department'])assert.ok(sql.includes(`CASE WHEN show_requester THEN ${field} ELSE NULL END`));
+    return {rows:[selected]};
+  }});
+  assert.ok(!Object.hasOwn(await repo.getProject('public'),'requester'));
+  selected={...row,requester:'Pessoa fictícia',requester_department:''};
+  const result=await repo.getProject('public');assert.equal(result.requester,selected.requester);assert.ok(!Object.hasOwn(result,'requester_department'));
+});
 test('consulta pública seleciona somente campos permitidos e filtra privados/arquivados no SQL',async()=>{
   const calls=[];
   const repo=createPublicRepository({query:async(sql,params)=>{calls.push({sql,params});return {rows:[{...row,cost:999,cpf:'sensitive',owner_id:'internal',audit:[],alternatives:[]}]};}});

@@ -2,6 +2,15 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { validateProject, filterProjects, savings, safeUrl } = require('../src/domain/core.js');
 const project = {id:'1', title:'Portal', description:'Sistema interno', solution:'Centralização', owner:'Ana', category:'Operações', status:'Concluído', requested:'2026-01-01', completed:'2026-02-01', cost:100, alternatives:[{name:'Produto A',cost:300,notes:'Suporte incluso'}]};
+
+test('solicitante opcional aceita legado e valida textos e visibilidade',()=>{
+  assert.doesNotThrow(()=>validateProject({...project}));
+  for(const field of ['requester','requester_department']){
+    for(const value of [null,42,{},'a'.repeat(121)])assert.throws(()=>validateProject({...project,[field]:value}));
+    assert.doesNotThrow(()=>validateProject({...project,[field]:'a'.repeat(120)}));
+  }
+  for(const value of [null,'false',1])assert.throws(()=>validateProject({...project,show_requester:value}));
+});
 test('rejeita conclusão anterior à solicitação',()=>assert.throws(()=>validateProject({...project,completed:'2025-01-01'})));
 test('concluído exige data de conclusão',()=>assert.throws(()=>validateProject({...project,completed:''})));
 test('valida registro e rejeita custo negativo',()=>{assert.doesNotThrow(()=>validateProject(project));assert.throws(()=>validateProject({...project,cost:-1}));});
