@@ -23,9 +23,19 @@ O Compose contém credenciais exclusivamente locais e descartáveis. O usuário 
 3. Execute `npm run dev` e abra `/management` ou `/catalogo` na origem acima.
 4. Use Ctrl+C para encerrar Node; `npm run dev:stop` para parar os containers preservando o volume.
 
-Na primeira criação do volume `crivo-development_crivo-dev-data`, o PostgreSQL executa as migrations 001/002 existentes e `dev/003-local-user.sql`. Só é criado um usuário fictício; o catálogo começa vazio. Reinícios preservam os dados. Alterar scripts de inicialização não migra volumes existentes; futuras migrations exigem atualização explícita desse fluxo. O runtime confere banco, papel e versões esperadas antes de servir HTTP. Não há limpeza ou reset automático.
+Na primeira criação do volume `crivo-development_crivo-dev-data`, o PostgreSQL executa as migrations 001/002/003 existentes e `dev/003-local-user.sql`. Só é criado um usuário fictício; o catálogo começa vazio. Reinícios preservam os dados. Alterar scripts de inicialização não migra volumes existentes; futuras migrations exigem atualização explícita desse fluxo. O runtime confere banco, papel e versões esperadas antes de servir HTTP. Não há limpeza ou reset automático.
 
 Se uma porta estiver ocupada, encerre o processo local correspondente antes de repetir. Falha no Docker ou no banco interrompe a inicialização, sem tentar outro destino. O primeiro uso precisa de internet para baixar imagens. Depois, a aplicação local não depende de Neon/Auth/fotos externas. Links de soluções cadastradas pelo desenvolvedor continuam sendo links normais.
+
+## Atualização de volume existente para migration 003
+
+Volumes criados antes dos campos do solicitante precisam da migration aditiva uma única vez. Inicie os containers com `npm run dev`; o runtime recusará o schema antigo. Confirme que o destino é o container local `crivo-development-db-1`, banco `crivo_dev`, papel `crivo_dev`, e que `vault.schema_migrations` contém somente 1 e 2. Com autorização para esse banco local, execute:
+
+```sh
+docker exec crivo-development-db-1 psql -v ON_ERROR_STOP=1 -U crivo_dev -d crivo_dev -f /docker-entrypoint-initdb.d/003-project-requester.sql
+```
+
+Reinicie `npm run dev`. Não repita a migration se a versão 3 já estiver registrada e não apague o volume. Nenhum desses comandos aplica migrations remotas.
 
 ## Limites
 
