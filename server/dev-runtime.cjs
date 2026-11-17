@@ -46,7 +46,7 @@ async function createDevelopmentServer(){
     const {rows:[identity]}=await pool.query('SELECT current_database() AS database,current_user AS role');
     if(identity.database!=='crivo_dev'||identity.role!=='crivo_app')throw Error('Identidade do banco local divergente.');
     const versions=(await pool.query('SELECT version FROM vault.schema_migrations ORDER BY version')).rows;
-    if(JSON.stringify(versions)!==JSON.stringify([{version:1},{version:2}]))throw Error('Schema local incompatível; confira as migrations.');
+    if(JSON.stringify(versions)!==JSON.stringify([{version:1},{version:2},{version:3}]))throw Error('Schema local incompatível; confira as migrations.');
     const photoOptions={photoBaseUrl:config.photoBaseUrl};
     const server=require('./server.cjs').createServer({origin:config.origin,
       auth:createDevelopmentAuth(),

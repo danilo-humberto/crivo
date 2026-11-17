@@ -1,6 +1,6 @@
 (function(root){
   const core = typeof module !== 'undefined' ? require('./core.js') : root.VaultCore;
-  const fields=['title','description','solution','owner','category','status','requested','completed','cost','url','alternatives','owner_id','is_public','show_solution_url','archived_at'];
+  const fields=['title','description','solution','owner','category','status','requested','completed','cost','url','alternatives','owner_id','is_public','show_solution_url','archived_at','requester','requester_department','show_requester'];
   function validateProjects(projects){
     if(!Array.isArray(projects))throw Error('Lista de projetos inválida.');
     projects.forEach(core.validateProject);
@@ -8,7 +8,7 @@
     return projects;
   }
   const canonical=value=>JSON.stringify(value,(_key,v)=>v && typeof v==='object' && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])) : v);
-  function changedFields(before,after){return fields.filter(field=>canonical(before?.[field]??'')!==canonical(after?.[field]??''));}
+  function changedFields(before,after){return fields.filter(field=>canonical(before?.[field]??(field==='show_requester'?false:''))!==canonical(after?.[field]??(field==='show_requester'?false:'')));}
   function event(action,before,after){return {id:crypto.randomUUID(),action,at:new Date().toISOString(),actor:'Não identificado',projectId:(after||before).id,before:before?structuredClone(before):null,after:after?structuredClone(after):null};}
   function validateState(state){
     if(!state || state.version!==2 || !Array.isArray(state.audit))throw Error('Histórico inválido.');

@@ -6,6 +6,8 @@
   const publicProjectPath = id => '/projetos/~' + encodeURIComponent(id);
   function validateProject(p) {
     if (!p || ['id','title','description','solution','owner','requested'].some(k => typeof p[k] !== 'string' || !p[k].trim())) throw Error('Preencha todos os campos obrigatórios.');
+    for(const field of ['requester','requester_department'])if(p[field]!==undefined&&(typeof p[field]!=='string'||p[field].trim().length>120))throw Error('Solicitante e departamento devem ser textos de até 120 caracteres.');
+    if(p.show_requester!==undefined&&typeof p.show_requester!=='boolean')throw Error('Visibilidade do solicitante inválida.');
     if (!statuses.includes(p.status) || !categories.includes(p.category)) throw Error('Status ou área inválidos.');
     const date = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(Date.parse(v)) && new Date(v).toISOString().slice(0,10) === v;
     if (!date(p.requested) || (p.completed && !date(p.completed))) throw Error('Informe datas válidas.');

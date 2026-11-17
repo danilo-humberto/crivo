@@ -4,6 +4,16 @@ const {initialize,commit,KEY} = require('../src/infrastructure/local-storage.js'
 const {validateState} = require('../src/domain/audit.js');
 const p = {id:'p1',title:'Portal',description:'Chamados',solution:'Portal interno',owner:'Ana',category:'Operações',status:'Planejado',requested:'2026-01-01',completed:'',cost:100,url:'',alternatives:[{name:'Outro',cost:200,notes:'Suporte'}]};
 const storage = () => {const map=new Map();return {getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v)};};
+
+test('armazenamento legado preserva solicitante e audita somente a visibilidade alterada',()=>{
+  const s=storage(),initial=initialize(s,[p]);
+  const filled=commit(s,initial.raw,[{...p,requester:'Pessoa fictícia',requester_department:'Setor fictício',show_requester:false}]);
+  const changed=commit(s,filled.raw,[{...filled.state.projects[0],show_requester:true}]);
+  const loaded=initialize(s,[]);assert.equal(loaded.state.projects[0].requester,'Pessoa fictícia');
+  const entry=changed.state.audit[0];
+  assert.deepEqual(require('../src/domain/audit.js').changedFields(entry.before,entry.after),['show_requester']);
+  assert.doesNotThrow(()=>validateState(loaded.state));
+});
 test('exemplos de edição e exclusão são identificados, completos e não alteram projetos',()=>{
   const s=storage(),a=initialize(s,[p]);
   const result=require('../src/infrastructure/local-storage.js').addExamples(s,a);

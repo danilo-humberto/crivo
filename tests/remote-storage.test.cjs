@@ -25,7 +25,7 @@ test('alterações isoladas de visibilidade e vínculo são enviadas; arquivamen
   }});
   vm.runInContext(fs.readFileSync(require.resolve('../src/infrastructure/remote-storage.js'),'utf8'),context);
   const loaded=await context.VaultStorage.initialize();
-  for(const change of [{is_public:true},{show_solution_url:true},{owner_id:'second'}]){
+  for(const change of [{show_requester:true},{requester:"Pessoa fictícia"},{requester_department:"Setor fictício"},{is_public:true},{show_solution_url:true},{owner_id:'second'}]){
     await context.VaultStorage.commit(null,loaded.raw,[{...state.projects[0],...change}]);
     const posted=JSON.parse(requests.findLast(r=>r.options.method==='POST').options.body);
     assert.equal(posted.expectedVersion,3);for(const [key,value] of Object.entries(change))assert.equal(posted.project[key],value);

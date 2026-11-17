@@ -9,6 +9,18 @@ function database(respond) {
     calls.push({sql,params});return respond(sql,params)??{rows:[]};
   },release:()=>calls.push({sql:'release'})})};
 }
+
+test('importação aceita legado e preserva os novos campos sem modificar snapshots',async()=>{
+  for(const extra of [{},{requester:'  Pessoa fictícia  ',requester_department:' Setor fictício ',show_requester:true}]){
+    const p={...project(),...extra},input={version:2,projects:[p],audit:[]};
+    const original=structuredClone(input);
+    const pool=database(sql=>sql.includes('RETURNING source')?{rows:[{source:'test'}]}:undefined);
+    await createRepository(pool).importState(input,{source:'test',examples:'keep'});
+    const insert=pool.calls.find(c=>c.sql.startsWith('INSERT INTO vault.projects'));
+    assert.deepEqual(insert.params.slice(11),[(extra.requester??'').trim(),(extra.requester_department??'').trim(),extra.show_requester??false]);
+    assert.deepEqual(input,original);
+  }
+});
 test('repetir importação igual não tenta inserir projetos ou histórico',async()=>{
   const input={version:2,projects:[project()],audit:[]},options={source:'test',examples:'keep'};
   const plan=prepareImport(input,options);

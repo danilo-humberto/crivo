@@ -10,8 +10,8 @@ function fixture(initial,{reviews=false,ownerActive=true,auditFails=false}={}){
     if(sql.startsWith('SELECT name FROM'))return {rows:params[0]==='actor'?[{name:'Autor'}]:ownerActive?[{name:'Selecionado'}]:[]};
     if(sql.startsWith('SELECT id FROM vault.reviews'))return {rows:reviews?[{id:'review'}]:[]};
     if(sql.startsWith('SELECT ')&&sql.includes('FROM vault.projects WHERE id='))return {rows:row?[structuredClone(row)]:[]};
-    if(sql.startsWith('INSERT INTO vault.projects'))row={...project(),id:params[0],owner:params[4]};
-    if(sql.startsWith('UPDATE vault.projects SET title='))row={...row,title:params[1],owner:params[4],version:row.version+1};
+    if(sql.startsWith('INSERT INTO vault.projects'))row={...project(),id:params[0],owner:params[4],requester:params[11],requester_department:params[12],show_requester:params[13]};
+    if(sql.startsWith('UPDATE vault.projects SET title='))row={...row,title:params[1],owner:params[4],requester:params[11],requester_department:params[12],show_requester:params[13],version:row.version+1};
     if(sql.startsWith('UPDATE vault.projects SET owner_id='))row={...row,owner_id:params[1],is_public:params[2],show_solution_url:params[3]};
     if(sql.startsWith('UPDATE vault.projects SET archived_at='))row={...row,archived_at:'2026-11-04T12:00:00Z',version:row.version+1};
     if(sql.startsWith('INSERT INTO vault.audit')&&auditFails)throw Error('audit failure');
@@ -20,6 +20,19 @@ function fixture(initial,{reviews=false,ownerActive=true,auditFails=false}={}){
   return {repository:createRepository(pool),calls,get row(){return row;}};
 }
 const options={actorId:'actor',expectedVersion:1};
+test('solicitante: cria privado, normaliza, preserva omissões, limpa e audita checkbox isolado',async()=>{
+  const f=fixture(null);
+  let saved=await f.repository.saveProject({...project(),owner_id:'user',requester:'  Pessoa fictícia  ',requester_department:'  Setor fictício  ',show_requester:true},{actorId:'actor'});
+  assert.equal(saved.is_public,false);assert.equal(saved.requester,'Pessoa fictícia');assert.equal(saved.requester_department,'Setor fictício');assert.equal(saved.show_requester,true);
+  const omitted={...saved,title:'Atualizado'};delete omitted.requester;delete omitted.requester_department;delete omitted.show_requester;
+  saved=await f.repository.saveProject(omitted,options);
+  assert.equal(saved.requester,'Pessoa fictícia');assert.equal(saved.show_requester,true);
+  saved=await f.repository.saveProject({...saved,show_requester:false},{...options,expectedVersion:2});
+  const audit=f.calls.filter(c=>c.sql.startsWith('INSERT INTO vault.audit')).at(-1);
+  assert.deepEqual(changedFields(JSON.parse(audit.params[6]),JSON.parse(audit.params[7])),['show_requester']);
+  saved=await f.repository.saveProject({...saved,requester:'  ',requester_department:''},{...options,expectedVersion:3});
+  assert.equal(saved.requester,'');assert.equal(saved.requester_department,'');
+});
 test('auditoria detecta vínculo mesmo com nomes iguais e controles independentes',()=>{
   const p=project();assert.deepEqual(changedFields(p,{...p,owner_id:'user',is_public:true,show_solution_url:true}),['owner_id','is_public','show_solution_url']);
 });

@@ -7,13 +7,13 @@ const {validateReview}=require('./reviews.cjs');
 
 const projectColumns=`id,title,description,solution,owner_legacy AS owner,category,status,
   requested::text,coalesce(completed::text,'') AS completed,cost::float8 AS cost,solution_url AS url,
-  version,owner_id,is_public,show_solution_url,archived_at`;
-const projectValues=p=>[p.id,p.title,p.description,p.solution,p.owner,p.category,p.status,p.requested,p.completed||null,p.cost,p.url||''];
+  version,owner_id,is_public,show_solution_url,archived_at,requester,requester_department,show_requester`;
+const projectValues=p=>[p.id,p.title,p.description,p.solution,p.owner,p.category,p.status,p.requested,p.completed||null,p.cost,p.url||'',(p.requester??'').trim(),(p.requester_department??'').trim(),p.show_requester??false];
 
 async function insertProject(client,p) {
   await client.query(`INSERT INTO vault.projects
-    (id,title,description,solution,owner_legacy,category,status,requested,completed,cost,solution_url)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,projectValues(p));
+    (id,title,description,solution,owner_legacy,category,status,requested,completed,cost,solution_url,requester,requester_department,show_requester)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,projectValues(p));
   await insertAlternatives(client,p);
 }
 async function insertAlternatives(client,p) {
@@ -126,6 +126,9 @@ function createRepository(pool) {
           owner=selected.name;
         }else if(!before||(!ownerId&&before.owner_id))throw Object.assign(Error('Responsável obrigatório. Selecione um usuário ativo.'),{status:400});
         project={...project,owner,owner_id:ownerId,
+          requester:(project.requester??before?.requester??'').trim(),
+          requester_department:(project.requester_department??before?.requester_department??'').trim(),
+          show_requester:project.show_requester??before?.show_requester??false,
           is_public:before?(project.is_public??before.is_public??false):false,
           show_solution_url:before?(project.show_solution_url??before.show_solution_url??false):false,
           archived_at:before?.archived_at??null};
@@ -133,7 +136,7 @@ function createRepository(pool) {
         if(!before)await insertProject(client,project);
         else {
           await client.query(`UPDATE vault.projects SET title=$2,description=$3,solution=$4,owner_legacy=$5,
-            category=$6,status=$7,requested=$8,completed=$9,cost=$10,solution_url=$11,version=version+1 WHERE id=$1`,projectValues(project));
+            category=$6,status=$7,requested=$8,completed=$9,cost=$10,solution_url=$11,requester=$12,requester_department=$13,show_requester=$14,version=version+1 WHERE id=$1`,projectValues(project));
           await client.query('DELETE FROM vault.alternatives WHERE project_id=$1',[project.id]);
           await insertAlternatives(client,project);
         }
