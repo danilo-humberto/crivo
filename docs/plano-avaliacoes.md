@@ -30,7 +30,7 @@ Atualização posterior: development excluída após confirmação; usuário aut
 
 Decisão aprovada: campos opcionais de texto livre, até 120 caracteres, distintos do responsável e da área. Um checkbox desmarcado por padrão controla a exibição conjunta na página pública; apenas campos preenchidos aparecem e somente em projetos públicos não arquivados. Pode ser marcado desde o cadastro, sem publicar automaticamente o projeto. Desmarcar preserva os dados internos. O servidor omite os valores das respostas públicas enquanto a opção estiver desligada.
 
-Implementado na branch de trabalho, com migration 003 aplicada somente ao Docker local autorizado e testes sintéticos. Três commits locais autorizados; integração, push e deploy não executados. [Implementação, evidências e limites](solicitante-projeto.md).
+Implementado nos três commits locais 51646e3, 41e9287 e d4b662a. Migration 003 validada no Docker local com dados sintéticos e aplicada em produção em 17/11/2026, após autorização específica e dispensa explícita de backup pelo usuário. No momento da aplicação da migration, integração, push e deploy ainda não haviam sido executados. [Implementação, evidências e limites](solicitante-projeto.md).
 
 ## Contexto atual
 
