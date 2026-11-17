@@ -85,7 +85,7 @@ function confirmProjectRemoval(title){
   });
 }
 function showDetail(id){const p=projects.find(p=>p.id===id);if(!p)return;const detailRaw=storedRaw;
-  $('#detail-content').innerHTML=`<div class="dialog-heading"><div><p class="eyebrow">${esc(p.category)}</p><h2 id="detail-title">${esc(p.title)}</h2></div><button class="icon-button" data-close aria-label="Fechar">×</button></div>${badge(p)}<h3>O que é o sistema</h3><p class="detail-description">${esc(p.description)}</p><h3>A solução</h3><p class="detail-description">${esc(p.solution)}</p><dl class="detail-facts"><div><dt>Responsável / equipe</dt><dd>${esc(p.owner)}</dd></div><div><dt>Custo mensal</dt><dd>${money(p.cost)}</dd></div><div><dt>Solicitado em</dt><dd>${date(p.requested)}</dd></div><div><dt>Concluído em</dt><dd>${date(p.completed)}</dd></div></dl>${safeUrl(p.url)?`<a class="primary detail-link" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener noreferrer">Acessar solução</a>`:'<p class="detail-description">Nenhum link cadastrado.</p>'}<h3>Comparação de soluções</h3><p class="detail-description">Valores mensais em reais. Os exemplos e preços iniciais são fictícios.</p><div class="table-wrap"><table><thead><tr><th>Solução</th><th>Custo mensal</th><th>Características / observações</th></tr></thead><tbody><tr class="own-row"><td>${esc(p.title)} · TI</td><td>${money(p.cost)}</td><td>Solução interna, adaptada à empresa.</td></tr>${p.alternatives.map(a=>`<tr><td>${esc(a.name)}</td><td>${money(a.cost)}</td><td>${esc(a.notes)}</td></tr>`).join('')}</tbody></table></div><p class="detail-description">${p.alternatives.length?`Economia potencial: ${money(savings(p))}/mês frente à alternativa mais barata. Não inclui custos de implantação e desenvolvimento.`:'Nenhuma alternativa cadastrada para comparação.'}</p>${VaultStorage.remote&&p.is_public?`<p><a href="${esc(VaultCore.publicProjectPath(p.id))}" target="_blank" rel="noopener noreferrer">Abrir página pública</a></p>`:""}<div class="dialog-actions"><button class="secondary danger" id="delete-project">Remover projeto</button><button class="primary" id="edit-project">Editar projeto</button></div>`;
+  $('#detail-content').innerHTML=`<div class="dialog-heading"><div><p class="eyebrow">${esc(p.category)}</p><h2 id="detail-title">${esc(p.title)}</h2></div><button class="icon-button" data-close aria-label="Fechar">×</button></div>${badge(p)}<h3>O que é o sistema</h3><p class="detail-description">${esc(p.description)}</p><h3>A solução</h3><p class="detail-description">${esc(p.solution)}</p><dl class="detail-facts"><div><dt>Responsável / equipe</dt><dd>${esc(p.owner)}</dd></div><div><dt>Solicitante</dt><dd>${esc(p.requester||'Não informado')}</dd></div><div><dt>Departamento do solicitante</dt><dd>${esc(p.requester_department||'Não informado')}</dd></div><div><dt>Custo mensal</dt><dd>${money(p.cost)}</dd></div><div><dt>Solicitado em</dt><dd>${date(p.requested)}</dd></div><div><dt>Concluído em</dt><dd>${date(p.completed)}</dd></div></dl>${safeUrl(p.url)?`<a class="primary detail-link" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener noreferrer">Acessar solução</a>`:'<p class="detail-description">Nenhum link cadastrado.</p>'}<h3>Comparação de soluções</h3><p class="detail-description">Valores mensais em reais. Os exemplos e preços iniciais são fictícios.</p><div class="table-wrap"><table><thead><tr><th>Solução</th><th>Custo mensal</th><th>Características / observações</th></tr></thead><tbody><tr class="own-row"><td>${esc(p.title)} · TI</td><td>${money(p.cost)}</td><td>Solução interna, adaptada à empresa.</td></tr>${p.alternatives.map(a=>`<tr><td>${esc(a.name)}</td><td>${money(a.cost)}</td><td>${esc(a.notes)}</td></tr>`).join('')}</tbody></table></div><p class="detail-description">${p.alternatives.length?`Economia potencial: ${money(savings(p))}/mês frente à alternativa mais barata. Não inclui custos de implantação e desenvolvimento.`:'Nenhuma alternativa cadastrada para comparação.'}</p>${VaultStorage.remote&&p.is_public?`<p><a href="${esc(VaultCore.publicProjectPath(p.id))}" target="_blank" rel="noopener noreferrer">Abrir página pública</a></p>`:""}<div class="dialog-actions"><button class="secondary danger" id="delete-project">Remover projeto</button><button class="primary" id="edit-project">Editar projeto</button></div>`;
   $('#edit-project').onclick=()=>{$('#detail-dialog').close();openForm(p,detailRaw);};
   $('#delete-project').onclick=async ()=>{
     if(!await confirmProjectRemoval(p.title))return;
@@ -132,13 +132,18 @@ async function openForm(p,expectedRaw=storedRaw){
   form.reset();$('#form-error').textContent='';$('#alternatives').replaceChildren();
   $('#form-title').textContent=p?'Editar projeto':'Novo projeto';
   if(p){
-    for(const key of ['title','category','status','description','solution','owner','url','requested','completed','cost'])form.elements[key].value=p[key]??(key==='cost'?0:'');
+    for(const key of ['title','category','status','description','solution','owner','url','requested','completed','cost','requester','requester_department'])form.elements[key].value=p[key]??(key==='cost'?0:'');
     p.alternatives.forEach(alternativeRow);
   }else form.elements.status.value='Planejado';
+  form.elements.show_requester.checked=!!p?.show_requester;
   const remote=!!VaultStorage.remote,select=form.elements.owner_id;
   $('#legacy-owner-field').hidden=remote;form.elements.owner.disabled=remote;
   $('#managed-owner-field').hidden=!remote;select.disabled=!remote;select.required=remote&&!p;
-  $('#project-visibility').hidden=!remote;$('#project-visibility').disabled=!remote||!p;
+  for(const field of ['is_public','show_solution_url']){
+    form.elements[field].disabled=!remote||!p;
+    form.elements[field].closest('label').hidden=!remote;
+  }
+  $('#visibility-help').hidden=!remote;
   form.elements.is_public.checked=!!p?.is_public;form.elements.show_solution_url.checked=!!p?.show_solution_url;
   $('#visibility-help').textContent=p?'Projetos públicos aparecem no catálogo. Custos, alternativas e auditoria permanecem internos.':'Novos projetos começam privados. Salve e edite o projeto para escolher sua visibilidade.';
   ownersReady=!remote;ownerChoices=[];
@@ -170,7 +175,7 @@ $('#project-form').onsubmit=async e=>{
   $('#form-error').textContent='';
   try{
     if(!ownersReady)throw Error('A lista de responsáveis não está disponível. Feche e reabra o formulário.');
-    const p=Object.fromEntries(new FormData(form));p.id=editingId||crypto.randomUUID();p.cost=Number(p.cost);
+    const p=Object.fromEntries(new FormData(form));p.id=editingId||crypto.randomUUID();p.cost=Number(p.cost);p.show_requester=form.elements.show_requester.checked;
     if(VaultStorage.remote){
       const before=JSON.parse(editingRaw).projects.find(item=>item.id===editingId);
       p.owner_id=form.elements.owner_id.value||null;
@@ -179,7 +184,7 @@ $('#project-form').onsubmit=async e=>{
       p.show_solution_url=!!editingId&&form.elements.show_solution_url.checked;
     }
     p.alternatives=[...$('#alternatives').children].map(row=>({name:row.querySelector('[data-field="name"]').value.trim(),cost:Number(row.querySelector('[data-field="cost"]').value),notes:row.querySelector('[data-field="notes"]').value.trim()}));
-    for(const k of ['title','description','solution','owner','url'])p[k]=p[k].trim();
+    for(const k of ['title','description','solution','owner','url','requester','requester_department'])p[k]=p[k].trim();
     validateProject(p);button.disabled=true;
     if(await persist(editingId?projects.map(x=>x.id===editingId?p:x):[p,...projects],editingRaw)){
       $('#form-dialog').close();toast(VaultStorage.remote?'Projeto salvo no servidor.':'Projeto salvo neste navegador.');
@@ -192,13 +197,13 @@ $('#new-project').onclick=()=>openForm();$('#add-alternative').onclick=()=>alter
 document.addEventListener('click',e=>{const close=e.target.closest('[data-close]');if(close)closeTopLayer(close.closest('dialog'));const detail=e.target.closest('[data-detail]');if(detail)showDetail(detail.dataset.detail);if(e.target.id==='clear-filters'){$('#search').value='';$('#status-filter').value='';$('#category-filter').value='';render();}});
 for(const id of ['search','status-filter','category-filter','sort'])$('#'+id).addEventListener(id==='search'?'input':'change',render);
 window.addEventListener('storage',e=>{if(!VaultStorage.remote&&(e.key===KEY||e.key===null)){try{adopt(VaultStorage.read(localStorage));render();renderAudit();toast('Projetos e histórico atualizados por outra aba.');}catch{storageBlocked=true;toast('Os dados foram removidos ou alterados fora desta aba. Recarregue antes de continuar.');}}});
-const fieldLabels={title:'Nome do projeto',description:'O que é o sistema',solution:'Solução',owner:'Responsável / equipe',category:'Área',status:'Status',requested:'Data da solicitação',completed:'Data da conclusão',cost:'Custo mensal',url:'Link',alternatives:'Alternativas de mercado',owner_id:'Vínculo do responsável',is_public:'Projeto público',show_solution_url:'Link público',archived_at:'Arquivado em'};
+const fieldLabels={requester:'Solicitante',requester_department:'Departamento do solicitante',show_requester:'Solicitante público',title:'Nome do projeto',description:'O que é o sistema',solution:'Solução',owner:'Responsável / equipe',category:'Área',status:'Status',requested:'Data da solicitação',completed:'Data da conclusão',cost:'Custo mensal',url:'Link',alternatives:'Alternativas de mercado',owner_id:'Vínculo do responsável',is_public:'Projeto público',show_solution_url:'Link público',archived_at:'Arquivado em'};
 const actionLabels={baseline:'Registro inicial',created:'Criação',updated:'Alteração',deleted:'Exclusão',archived:'Arquivamento',review_hidden:'Avaliação ocultada',review_shown:'Avaliação reexibida'};
 const timestamp=value=>new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'medium'}).format(new Date(value));
 function auditValue(project,field){
   if(!project)return 'Não existia';
   const value=project[field];
-  if(field==='is_public'||field==='show_solution_url')return value?'Sim':'Não';
+  if(field==='is_public'||field==='show_solution_url'||field==='show_requester')return value?'Sim':'Não';
   if(field==='owner_id')return value?project.owner+' (conta vinculada: '+value+')':'Nome antigo, sem vínculo';
   if(field==='archived_at')return value?timestamp(value):'Não arquivado';
   if(field==='cost')return money(value);

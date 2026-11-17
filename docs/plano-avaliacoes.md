@@ -26,6 +26,12 @@ As quatro suítes PostgreSQL existentes passaram no banco configurado, confirmad
 
 Atualização posterior: development excluída após confirmação; usuário autorizou continuar na branch production ainda fora de uso. Cinco testes de integração passaram, incluindo HTTP/concorrência. Logout/novo login e cadastro → publicação → avaliação → curadoria conferidos no navegador; restauração sintética local ensaiada. Recuperação concluída pelo usuário e acesso posterior à gestão conferido; segunda conta, acessibilidade completa e publicação continuam pendentes. Consulte o registro da etapa 9. Contraste do selo Planejado corrigido (5,21:1), verificações adicionais de acessibilidade registradas e 99/99 testes locais e build aprovados.
 
+## Solicitante e departamento — 17 de novembro de 2026
+
+Decisão aprovada: campos opcionais de texto livre, até 120 caracteres, distintos do responsável e da área. Um checkbox desmarcado por padrão controla a exibição conjunta na página pública; apenas campos preenchidos aparecem e somente em projetos públicos não arquivados. Pode ser marcado desde o cadastro, sem publicar automaticamente o projeto. Desmarcar preserva os dados internos. O servidor omite os valores das respostas públicas enquanto a opção estiver desligada.
+
+Implementado na branch de trabalho, com migration 003 aplicada somente ao Docker local autorizado e testes sintéticos. Três commits locais autorizados; integração, push e deploy não executados. [Implementação, evidências e limites](solicitante-projeto.md).
+
 ## Contexto atual
 
 O Vault mantém HTML, CSS e JavaScript puro, servidor Node, Neon Auth e PostgreSQL. A gestão usa API protegida; localStorage permanece como modo legado explícito, sem sincronização automática. Responsáveis são selecionados entre usuários internos, preservando nomes legados sem vínculo automático. Visitantes usam catálogo e páginas individuais renderizados no servidor; o modal da gestão permanece para dados internos e edição.
@@ -48,7 +54,7 @@ Um link compartilhável abre o catálogo público do TI. Cada projeto visível t
 
 - Visibilidade pública independente do status: Planejado, Em andamento ou Concluído.
 - Novos projetos começam privados; um usuário interno escolhe quando torná-los públicos.
-- Campos públicos: nome, resumo, solução, área, status, datas e responsável.
+- Campos públicos: nome, resumo, solução, área, status, datas e responsável. Solicitante e departamento são opcionais e só são expostos quando o controle específico estiver ativo.
 - A exibição pública do link de acesso à solução possui controle separado, definido pelo usuário interno.
 - Custos, alternativas e auditoria permanecem internos.
 - Projetos privados e arquivados não podem ser consultados por endereço direto público.

@@ -20,7 +20,7 @@ Uma experiência de produto em nuvem para tornar projetos mais fáceis de encont
 
 ## Do projeto ao feedback
 
-**Organize.** Cadastre projetos com descrição, solução, responsável, área e status. Acompanhe datas, custos e alternativas em uma área de gestão protegida.
+**Organize.** Cadastre projetos com descrição, solução, responsável, área e status. Informe também solicitante e departamento (opcionais), com opção de exibi-los na página pública. Acompanhe datas, custos e alternativas em uma área de gestão protegida.
 
 **Publique.** Escolha quais projetos aparecem no catálogo e decida, separadamente, quando disponibilizar o link da solução. Projetos novos começam privados.
 
@@ -114,6 +114,7 @@ Os testes de integração PostgreSQL exigem ambiente separado e autorização es
 - [Arquitetura e decisões técnicas](docs/arquitetura-etapa-2.md)
 - [Publicação e operação](docs/publicacao-cloudflare.md)
 - [Validações e limitações conhecidas](docs/validacao-etapa-9.md)
+- [Solicitante e departamento: implementação e validação](docs/solicitante-projeto.md)
 - [Acessibilidade](docs/acessibilidade-etapa-9.md)
 - [Histórico técnico do README](docs/historico-readme-2026-11-10.md)
 
