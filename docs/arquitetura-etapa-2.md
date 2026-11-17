@@ -1,5 +1,7 @@
 # Arquitetura proposta para o Vault
 
+Atualização de 17/11/2026: desenvolvimento Docker local implementado em ponto de entrada separado (`npm run dev`), com PostgreSQL, proxy WebSocket e identidade fictícia autorizada. Substitui a pendência de ambiente local para desenvolver persistência/gestão; validação real de Neon Auth continua exigindo ambiente gerenciado isolado. Veja [configuração e limites](desenvolvimento-docker.md). Produção preservada.
+
 > **Leitura atualizada em 10/11/2026:** consulte o [estado consolidado da publicação](publicacao-cloudflare.md#estado-consolidado--10112026). Os registros abaixo preservam o estado de cada etapa na data descrita; pendências históricas e operações ainda não executadas naquele momento não substituem a consolidação atual.
 
 Consolidada em 6 de novembro de 2026. Neon Managed Better Auth, autorização interna por convite e fotos diretas foram adotados; a implementação atual roda em Node. Migrations 001/002, primeiro usuário e testes controlados constam no [histórico](historico-implementacao.md). Workers ainda não foi validado. O [README](../README.md) descreve os comandos atuais e o [plano](plano-avaliacoes.md) concentra o acompanhamento das etapas.

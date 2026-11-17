@@ -1,0 +1,33 @@
+name: crivo-development
+services:
+  db:
+    image: postgres:17.7-alpine
+    environment:
+      POSTGRES_DB: crivo_dev
+      POSTGRES_USER: crivo_dev
+      POSTGRES_PASSWORD: crivo_local_only
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - crivo-dev-data:/var/lib/postgresql/data
+      - ./server/migrations/001-persistence.sql:/docker-entrypoint-initdb.d/001-persistence.sql:ro
+      - ./server/migrations/002-invitations.sql:/docker-entrypoint-initdb.d/002-invitations.sql:ro
+      - ./dev/003-local-user.sql:/docker-entrypoint-initdb.d/003-local-user.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U crivo_dev -d crivo_dev"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  proxy:
+    image: ghcr.io/neondatabase/wsproxy@sha256:7f2e2149aa6a57ba382a140102fba44f5053f3e44389ccc18adcecf896054efb
+    environment:
+      ALLOW_ADDR_REGEX: '^db:5432$$'
+      LOG_TRAFFIC: "false"
+      LOG_CONN_INFO: "false"
+    ports:
+      - "127.0.0.1:55433:80"
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  crivo-dev-data:

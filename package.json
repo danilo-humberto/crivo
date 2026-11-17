@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "dev": "node server/dev.cjs",
+    "dev:stop": "node server/dev.cjs stop",
+    "test:dev": "node --test tests/development/*.test.cjs",
     "build": "node server/build.cjs",
     "prestart": "npm run build",
     "start": "node server/start-local.cjs",

@@ -167,6 +167,10 @@ Atualização de 10/11/2026: origem https://vault-ti.cifraengenharia.workers.dev
 Atualização de 10/11/2026: Vault publicado em https://vault-ti.cifraengenharia.workers.dev, versão 7c90ceae-68b0-4363-942e-e0de7a2ab3d6. Segredos e Durable Object provisionados com autorização específica. Catálogo/Neon, bloqueios sem sessão, login real, gestão e auditoria vazias conferidos em produção. Sem criação de dados de teste. Configuração/documentação desta rodada ainda não commitadas; a publicação não encerra as demais pendências da etapa 9. Ver [evidências](validacao-etapa-9.md).
 
 
+## Ambiente local — 17/11/2026
+
+Por solicitação do usuário, `npm run dev` passa a iniciar PostgreSQL/proxy em Docker e usar somente configurações locais fixas, ignorando `.env` e destinos de produção herdados. Login simulado com usuário fictício autorizado explicitamente; fotos externas desativadas. Implementação e validações detalhadas em [desenvolvimento Docker](desenvolvimento-docker.md). Não representa validação de Neon Auth, integração Git ou publicação.
+
 ## Identidade aprovada — 10/11/2026
 
 Nome do produto alterado para **Crivo**, por solicitação do usuário, com favicon próprio. Implementação e validação locais concluídas; publicação dessa mudança pendente. Identificadores técnicos e endereço existente preservados por compatibilidade. Evidências e validação manual no [README](historico-readme-2026-11-10.md#nome-crivo-e-favicon--10112026). Menções anteriores a Vault constituem registros históricos.

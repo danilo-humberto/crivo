@@ -83,7 +83,18 @@ node tests/fixtures/curation-preview.cjs --seed-reviews
 
 Abra http://127.0.0.1:4188/catalogo ou http://127.0.0.1:4188/management. Essa prévia usa dados em memória e autenticação simulada; não deve ser publicada. Encerre com Ctrl+C.
 
-Para desenvolvimento completo, use um banco e Auth de desenvolvimento isolados e configure as variáveis a partir de `.env.example`. `npm start` gera o bundle e inicia a aplicação em http://127.0.0.1:4173. Não use credenciais nem dados de produção em testes.
+Para desenvolver com PostgreSQL local, abra o Docker Desktop (containers Linux) e execute:
+
+```sh
+npm ci
+npm run dev
+```
+
+Abra http://127.0.0.1:4173/management ou http://127.0.0.1:4173/catalogo. O comando sobe PostgreSQL e um proxy WebSocket no Docker, prepara o bundle e inicia a aplicação Node na máquina. Não precisa de `.env`: banco, identidade fictícia e fotos desativadas são fixos nesse perfil, sem aproveitar configurações de produção do terminal. A gestão entra automaticamente como **Pessoa de desenvolvimento**.
+
+Os dados ficam no volume Docker `crivo-development_crivo-dev-data`. Ctrl+C encerra a aplicação; `npm run dev:stop` para os containers sem apagar dados. Execute `npm run dev` novamente para continuar. Alterações no servidor ou no bundle de autenticação exigem reiniciar o comando; HTML/CSS e scripts não empacotados são relidos ao atualizar a página.
+
+Esse login é simulado: não valida cadastro, senha, verificação de e-mail, recuperação ou acesso de outra identidade por convite. Para esses fluxos, `npm start` continua usando um banco e Neon Auth de desenvolvimento isolados, configurados a partir de `.env.example`. Não use credenciais nem dados de produção em testes. Veja [ambiente Docker](docs/desenvolvimento-docker.md) para portas, limites e validação.
 
 Verificações locais:
 
@@ -91,6 +102,8 @@ Verificações locais:
 npm test
 npm run test:worker
 npm run check:worker
+# Com os containers de desenvolvimento iniciados:
+npm run test:dev
 ```
 
 Os testes de integração PostgreSQL exigem ambiente separado e autorização específica. Consulte a documentação técnica antes de executá-los.
